@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sandfall — Falling Sand Simulation</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+  <div class="app">
+    <aside class="panel">
+      <header class="panel-header">
+        <h1>Sandfall</h1>
+        <p class="subtitle">Falling sand sandbox</p>
+      </header>
+
+      <section class="panel-section">
+        <h2>Material</h2>
+        <div class="material-list">
+          <button type="button" class="material-btn is-active" data-material="1">
+            <span class="swatch swatch-sand"></span>
+            <span class="material-name">Sand</span>
+            <kbd>1</kbd>
+          </button>
+          <button type="button" class="material-btn" data-material="2">
+            <span class="swatch swatch-water"></span>
+            <span class="material-name">Water</span>
+            <kbd>2</kbd>
+          </button>
+          <button type="button" class="material-btn" data-material="3">
+            <span class="swatch swatch-wall"></span>
+            <span class="material-name">Wall</span>
+            <kbd>3</kbd>
+          </button>
+          <button type="button" class="material-btn" data-material="4">
+            <span class="swatch swatch-acid"></span>
+            <span class="material-name">Acid</span>
+            <kbd>4</kbd>
+          </button>
+        </div>
+      </section>
+
+      <section class="panel-section">
+        <h2>Brush size <span id="brush-value" class="value-badge">4</span></h2>
+        <input
+          type="range"
+          id="brush-size"
+          min="1"
+          max="20"
+          value="4"
+          step="1"
+          aria-label="Brush size"
+        />
+      </section>
+
+      <section class="panel-section">
+        <h2>Actions</h2>
+        <div class="action-row">
+          <button type="button" id="clear-btn" class="action-btn danger">
+            ✕ Clear canvas
+          </button>
+          <button type="button" id="pause-btn" class="action-btn">
+            ⏸ Pause
+          </button>
+        </div>
+      </section>
+
+      <footer class="panel-footer">
+        <p>Click &amp; drag on the canvas to pour material.<br />
+        Hold the button down to keep the stream flowing.</p>
+      </footer>
+    </aside>
+
+    <main class="stage">
+      <div class="canvas-frame">
+        <canvas id="sim-canvas" width="200" height="200"></canvas>
+      </div>
+    </main>
+  </div>
+
+  <!-- Plain scripts (no modules) so the app also works from file:// -->
+  <script src="js/config.js"></script>
+  <script src="js/materials.js"></script>
+  <script src="js/grid.js"></script>
+  <script src="js/physics.js"></script>
+  <script src="js/renderer.js"></script>
+  <script src="js/input.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
