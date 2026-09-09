@@ -3,6 +3,9 @@
 A falling-sand (cellular automata) sandbox in pure vanilla HTML/CSS/JavaScript.
 No build step, no dependencies — just open `index.html` in a browser.
 
+> AI agents: read [`AGENTS.md`](AGENTS.md) first — project status, invariants,
+> and pitfalls are documented there.
+
 ## Running
 
 **Option 1 (preferred): open directly**
