@@ -54,6 +54,12 @@
     if (event.key === 'p' || event.key === 'P') {
       togglePause();
     }
+    if (event.key === 'e' || event.key === 'E') {
+      toggleErosion();
+    }
+    if (event.key === 'r' || event.key === 'R') {
+      toggleRain();
+    }
   });
 
   const brushSlider = document.getElementById('brush-size');
@@ -86,6 +92,22 @@
   }
 
   pauseButton.addEventListener('click', togglePause);
+
+  // ---- Mode toggles (erosion, rain) -------------------------------------
+
+  const erosionButton = document.getElementById('erosion-btn');
+  function toggleErosion() {
+    Physics.erosion = !Physics.erosion;
+    erosionButton.classList.toggle('is-active', Physics.erosion);
+  }
+  erosionButton.addEventListener('click', toggleErosion);
+
+  const rainButton = document.getElementById('rain-btn');
+  function toggleRain() {
+    Rain.enabled = !Rain.enabled;
+    rainButton.classList.toggle('is-active', Rain.enabled);
+  }
+  rainButton.addEventListener('click', toggleRain);
 
   // Initial selection.
   selectMaterial(MATERIALS.SAND);
@@ -127,6 +149,7 @@
 
     if (!paused) {
       for (let t = 0; t < CONFIG.TICKS_PER_FRAME; t++) {
+        Rain.update(grid); // no-op while rain is disabled
         Physics.tick(grid);
       }
     }

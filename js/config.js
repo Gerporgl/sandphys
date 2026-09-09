@@ -26,4 +26,29 @@ const CONFIG = {
   DEFAULT_BRUSH_RADIUS: 4,
   MIN_BRUSH_RADIUS: 1,
   MAX_BRUSH_RADIUS: 20,
+
+  /**
+   * Erosion mode: when enabled, sand falling into water turns the water
+   * into sand (sedimentation, no displacement), and falling water has a
+   * random chance to dissolve the sand/wall cell directly below it.
+   */
+  EROSION: {
+    /** Probability (0..1) per water particle per tick that the sand or
+     *  wall cell directly below it is dissolved into water. */
+    WATER_EROSION_CHANCE: 0.01,
+  },
+
+  /**
+   * Rain mode: when enabled, water drops spawn in the top row every tick.
+   * The spawn rate ("intensity") wanders randomly between the bounds
+   * below, easing toward a new random target every TARGET_CHANGE_EVERY_TICKS.
+   */
+  RAIN: {
+    MIN_DROPS_PER_TICK: 1,
+    MAX_DROPS_PER_TICK: 12,
+    /** Ticks between picking a new random intensity target. */
+    TARGET_CHANGE_EVERY_TICKS: 240,
+    /** How quickly the intensity eases toward the current target (0..1). */
+    EASE: 0.02,
+  },
 };

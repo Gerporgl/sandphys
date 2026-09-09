@@ -35,6 +35,12 @@ No `npm install`, no dev server needed — the scripts are plain `<script>` tags
   and the stream keeps pouring even if the pointer stops moving. Fast mouse
   movements are interpolated between pointer positions, so the pour stays
   continuous.
+- **Modes** (toggle, combinable):
+  - **Erosion** (key `E`): sand falling into water *converts* the water into
+    sand (sedimentation, no displacement), and water sitting on sand or wall
+    has a random chance per tick to dissolve that cell into water.
+  - **Rain** (key `R`): water drops fall from the top of the grid at a
+    random intensity that gently thickens and thins over time.
 
 ## Simulation rules
 
@@ -54,6 +60,13 @@ first, so piles and liquids stay centered rather than skewing.
 | **Acid** `#55ff33` | Flows exactly like Water, but on direct contact (up/down/left/right) with Sand or Wall it dissolves **both** itself and that cell into empty space. |
 | **Eraser** | Not a material — it stamps Empty space with the brush, for undoing mistakes (including walls). |
 
+In **erosion mode**, the Sand and Water rules change: sand falling into water
+turns the water cell into sand (sedimentation), and each water particle with
+sand or wall directly below rolls `CONFIG.EROSION.WATER_EROSION_CHANCE`; on
+success that cell becomes water. Acid is unaffected. **Rain mode** (independent
+of erosion) spawns water in the top row every tick, at a rate that wanders
+randomly between `CONFIG.RAIN.MIN_DROPS_PER_TICK` and `MAX_DROPS_PER_TICK`.
+
 A status bar under the canvas shows the canvas size, the grid size, and the
 measured FPS (exponential moving average of frame deltas, refreshed 4×/s).
 
@@ -71,7 +84,8 @@ css/style.css           Dark dashboard theme
 js/config.js            All tunable constants (grid size, canvas size, ...)
 js/materials.js         Material ids and metadata (names, colors)
 js/grid.js              Grid state (flat typed arrays), no DOM
-js/physics.js           The cellular automaton rules, no DOM
+js/physics.js           The cellular automaton rules (incl. erosion mode), no DOM
+js/weather.js           Rain system (random-wandering intensity), no DOM
 js/renderer.js          ImageData blit of the grid to the canvas
 js/input.js             Mouse/pointer painting (brush disc, hold-to-pour)
 js/app.js               DOM wiring (buttons, slider, pause) + rAF loop
@@ -94,10 +108,13 @@ node tests/run-tests.js
 Covers: sand fall, sand sinking through water, no-teleport (≤1 cell/tick),
 sand spreading to both sides (direction randomization), water fall / diagonal
 / horizontal spread, wall immutability, acid dissolving sand & wall (top,
-bottom and side contact), and acid flowing like water.
+bottom and side contact), acid flowing like water, erosion sedimentation,
+water erosion of sand & wall, and rain spawning / intensity bounds.
 
 ## Tuning
 
 All constants (grid dimensions, canvas size, ticks per frame, color shade
-variation, brush defaults) live in `js/config.js`. Change them there; no other
-file needs editing.
+variation, brush defaults, erosion chance, rain intensity bounds) live in
+`js/config.js`. Change them there; no other file needs editing. The canvas
+display size follows `CANVAS_SIZE` automatically — the app injects it into
+the CSS `--canvas-size` variable at startup.

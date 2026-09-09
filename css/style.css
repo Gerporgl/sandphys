@@ -302,6 +302,17 @@ input[type="range"]::-moz-range-thumb {
   color: var(--accent);
 }
 
+.action-btn kbd {
+  font-family: inherit;
+  font-size: 0.65rem;
+  color: var(--text-dim);
+  background: #2a2a36;
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  padding: 0 5px;
+  margin-left: 4px;
+}
+
 /* ---------- Footer ---------- */
 
 .panel-footer p {
