@@ -17,6 +17,8 @@
   --wall: #6c757d;
   --acid: #55ff33;
 
+  /* Fallback only — js/app.js overrides this at startup from
+   * CONFIG.CANVAS_SIZE so the layout always matches the config. */
   --canvas-size: 400px;
   --radius: 10px;
 }

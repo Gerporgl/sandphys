@@ -8,6 +8,13 @@
 (function () {
   'use strict';
 
+  // Drive the CSS layout from CONFIG so the canvas display size always
+  // matches CANVAS_SIZE, no matter how the config is tuned.
+  document.documentElement.style.setProperty(
+    '--canvas-size',
+    `${CONFIG.CANVAS_SIZE}px`
+  );
+
   const canvas = document.getElementById('sim-canvas');
   const grid = new Grid(CONFIG.GRID_WIDTH, CONFIG.GRID_HEIGHT);
   const renderer = new Renderer(canvas, grid);
