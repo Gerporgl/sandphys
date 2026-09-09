@@ -32,7 +32,9 @@ No `npm install`, no dev server needed — the scripts are plain `<script>` tags
 - **Brush size slider** sets the brush radius (in grid cells).
 - **Clear canvas** empties the grid. **Pause** (or key `P`) freezes physics.
 - **Click & drag** on the canvas to pour material. Keep the button held down
-  and the stream keeps pouring even if the pointer stops moving.
+  and the stream keeps pouring even if the pointer stops moving. Fast mouse
+  movements are interpolated between pointer positions, so the pour stays
+  continuous.
 
 ## Simulation rules
 
@@ -51,8 +53,11 @@ first, so piles and liquids stay centered rather than skewing.
 | **Wall** `#6c757d` | Static, impassable. |
 | **Acid** `#55ff33` | Flows exactly like Water, but on direct contact (up/down/left/right) with Sand or Wall it dissolves **both** itself and that cell into empty space. |
 
-Each particle also gets a random brightness shade of its material color for a
-granular look.
+A static per-cell brightness texture (a noise map generated once and fixed to
+the canvas) gives the materials a granular look. Because it is attached to
+positions rather than particles, the texture never moves with the falling
+material — and cells that dissolve (e.g. from acid) are always left as the
+uniform background color, never with a stale tint.
 
 ## Project structure
 

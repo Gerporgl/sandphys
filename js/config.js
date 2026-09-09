@@ -18,8 +18,8 @@ const CONFIG = {
   /** Physics ticks executed per animation frame. */
   TICKS_PER_FRAME: 1,
 
-  /** One color variation ("shade") per material is picked randomly for each
-   *  particle to give the grains a granular, non-flat look. */
+  /** Brightness factors used by the renderer's static, position-fixed
+   *  per-cell texture (it does NOT travel with the particles). */
   SHADE_VARIATIONS: [0.78, 0.9, 1.0, 1.1, 1.22],
 
   /** Brush settings (radius in grid cells). */

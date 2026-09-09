@@ -18,10 +18,17 @@ const APP_FILES = [
   'js/materials.js',
   'js/grid.js',
   'js/physics.js',
+  'js/input.js',
 ];
 
 function createSandbox() {
-  const context = vm.createContext({ console, assert });
+  const context = vm.createContext({
+    console,
+    assert,
+    // Minimal DOM stubs so Input's constructor can run headless; tests
+    // inject their own canvas stub per-test.
+    window: { addEventListener() {} },
+  });
   for (const file of APP_FILES) {
     const code = fs.readFileSync(path.join(ROOT, file), 'utf8');
     vm.runInContext(code, context, { filename: file });

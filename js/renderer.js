@@ -2,6 +2,11 @@
  * Renderer: blits the grid state onto the canvas via ImageData (fast, one
  * putImageData per frame). The canvas internal resolution is the grid size;
  * CSS upscales it to CONFIG.CANVAS_SIZE with `image-rendering: pixelated`.
+ *
+ * Texture: each cell has a fixed brightness variation drawn from a static
+ * noise map generated once at construction. The map is attached to the
+ * canvas positions — not to the particles — so the texture never moves with
+ * the material, and empty cells can never be left behind with a stale tint.
  */
 
 /** '#rrggbb' -> [r, g, b] */
@@ -33,15 +38,23 @@ class Renderer {
         Math.min(255, Math.round(b * factor)),
       ]);
     }
+
+    // Static per-cell texture: fixed to the canvas, generated once.
+    const count = grid.width * grid.height;
+    const variations = CONFIG.SHADE_VARIATIONS.length;
+    this.shadeMap = new Uint8Array(count);
+    for (let i = 0; i < count; i++) {
+      this.shadeMap[i] = (Math.random() * variations) | 0;
+    }
   }
 
   draw() {
-    const { cells, shades } = this.grid;
+    const { cells } = this.grid;
     const data = this.imageData.data;
     const length = cells.length;
 
     for (let i = 0; i < length; i++) {
-      const [r, g, b] = this.palettes[cells[i]][shades[i]];
+      const [r, g, b] = this.palettes[cells[i]][this.shadeMap[i]];
       const o = i * 4;
       data[o] = r;
       data[o + 1] = g;
