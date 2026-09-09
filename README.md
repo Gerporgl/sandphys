@@ -44,10 +44,12 @@ No `npm install`, no dev server needed — the scripts are plain `<script>` tags
 
 ## Simulation rules
 
-The world is a 200×200 cell grid rendered onto a 400×400 CSS canvas
-(`image-rendering: pixelated` for a crisp 2× upscale). Each frame, one
-physics tick scans the grid **from the bottom row up**, moving each particle
-at most one cell (a per-tick `moved` flag prevents multi-cell travel).
+The world is a `CONFIG.GRID_WIDTH` × `CONFIG.GRID_HEIGHT` cell grid rendered
+onto a `CONFIG.CANVAS_SIZE`-pixel CSS canvas (`image-rendering: pixelated`
+for a crisp upscale; the display size is injected from the config at startup).
+Each frame, `CONFIG.TICKS_PER_FRAME` physics ticks scan the grid **from the
+bottom row up**, moving each particle at most one cell per tick (a per-tick
+`moved` flag prevents multi-cell travel).
 Every horizontal/diagonal choice randomizes whether left or right is checked
 first, so piles and liquids stay centered rather than skewing.
 
