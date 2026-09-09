@@ -19,6 +19,7 @@ const APP_FILES = [
   'js/grid.js',
   'js/physics.js',
   'js/weather.js',
+  'js/presets.js',
   'js/input.js',
 ];
 

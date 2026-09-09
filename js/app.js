@@ -78,7 +78,7 @@
 
   document
     .getElementById('clear-btn')
-    .addEventListener('click', () => grid.clear());
+    .addEventListener('click', () => Presets.random(grid));
 
   // ---- Pause ------------------------------------------------------------
 
@@ -109,8 +109,9 @@
   }
   rainButton.addEventListener('click', toggleRain);
 
-  // Initial selection.
+  // Initial selection + opening scene.
   selectMaterial(MATERIALS.SAND);
+  Presets.random(grid);
 
   // ---- Status bar -------------------------------------------------------
 

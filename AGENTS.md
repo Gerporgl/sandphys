@@ -6,11 +6,15 @@ build step, no dependencies, no ES modules — plain `<script>` tags so
 `index.html` works from `file://`. Run tests with `node tests/run-tests.js`.
 
 ## Status (as of last session)
-Complete and stable: 16/16 tests passing. Features: 5 paintables (Sand,
+Complete and stable: 17/17 tests passing. Features: 5 paintables (Sand,
 Water, Wall, Acid, Eraser=EMPTY), brush slider with pointer interpolation,
 pause, clear, keyboard shortcuts (1–5 materials, P pause, E erosion, R rain),
 status bar (canvas size / grid size / measured FPS), optional **Erosion** and
-**Rain** modes (both off by default; keep them — user approved leaving them).
+**Rain** modes (both off by default; keep them — user approved leaving them),
+and **Presets** (`js/presets.js`): 5 ASCII-art scenes (Smiley, Shelves,
+Funnel, Water basin, Acid trap) drawn centered on load and after Clear
+(button relabeled "New scene (clear)"); `Presets.random(grid)` clears then
+picks one at random.
 The user actively tunes `js/config.js` themselves (currently 250×250 grid,
 500px canvas, 2 ticks/frame) — never revert their config values.
 

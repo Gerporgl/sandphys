@@ -39,6 +39,15 @@ const CONFIG = {
   },
 
   /**
+   * Presets: small predefined scenes drawn on the grid at startup and
+   * after every Clear, chosen at random (see js/presets.js).
+   */
+  PRESETS: {
+    /** Maximum fraction of the grid width/height a preset may occupy. */
+    MAX_FRACTION: 0.75,
+  },
+
+  /**
    * Rain mode: when enabled, water drops spawn in the top row every tick.
    * The spawn rate ("intensity") wanders randomly between the bounds
    * below, easing toward a new random target every TARGET_CHANGE_EVERY_TICKS.
