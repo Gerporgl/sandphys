@@ -11,17 +11,19 @@ const MATERIALS = Object.freeze({
 });
 
 const MATERIAL_INFO = {
-  [MATERIALS.EMPTY]: { name: 'Empty', color: '#1e1e24', paintable: false },
+  // EMPTY is paintable: it doubles as the eraser.
+  [MATERIALS.EMPTY]: { name: 'Empty', color: '#1e1e24', paintable: true, isEraser: true },
   [MATERIALS.SAND]: { name: 'Sand', color: '#e9c46a', paintable: true },
   [MATERIALS.WATER]: { name: 'Water', color: '#457b9d', paintable: true },
   [MATERIALS.WALL]: { name: 'Wall', color: '#6c757d', paintable: true },
   [MATERIALS.ACID]: { name: 'Acid', color: '#55ff33', paintable: true },
 };
 
-/** Materials the user can paint, in UI order (keyboard shortcut 1..4). */
+/** Materials the user can paint, in UI order (keyboard shortcut 1..5). */
 const PAINTABLE_MATERIALS = [
   MATERIALS.SAND,
   MATERIALS.WATER,
   MATERIALS.WALL,
   MATERIALS.ACID,
+  MATERIALS.EMPTY, // eraser
 ];

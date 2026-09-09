@@ -27,8 +27,8 @@ No `npm install`, no dev server needed — the scripts are plain `<script>` tags
 
 ## Using the app
 
-- **Material buttons** (or keys `1`–`4`) pick what you paint: Sand, Water,
-  Wall, Acid.
+- **Material buttons** (or keys `1`–`5`) pick what you paint: Sand, Water,
+  Wall, Acid, and the Eraser (paints empty space, works on walls too).
 - **Brush size slider** sets the brush radius (in grid cells).
 - **Clear canvas** empties the grid. **Pause** (or key `P`) freezes physics.
 - **Click & drag** on the canvas to pour material. Keep the button held down
@@ -52,6 +52,10 @@ first, so piles and liquids stay centered rather than skewing.
 | **Water** `#457b9d` | Falls down; if blocked, slides diagonally; if still blocked, spreads horizontally one cell per tick. |
 | **Wall** `#6c757d` | Static, impassable. |
 | **Acid** `#55ff33` | Flows exactly like Water, but on direct contact (up/down/left/right) with Sand or Wall it dissolves **both** itself and that cell into empty space. |
+| **Eraser** | Not a material — it stamps Empty space with the brush, for undoing mistakes (including walls). |
+
+A status bar under the canvas shows the canvas size, the grid size, and the
+measured FPS (exponential moving average of frame deltas, refreshed 4×/s).
 
 A static per-cell brightness texture (a noise map generated once and fixed to
 the canvas) gives the materials a granular look. Because it is attached to

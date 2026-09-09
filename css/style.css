@@ -52,8 +52,30 @@ body {
 
 .stage {
   display: flex;
+  flex-direction: column;
   align-items: center;
-  justify-content: center;
+  justify-content: start; /* top-align with the panel */
+  gap: 12px;
+}
+
+/* ---------- Status bar ---------- */
+
+.status-bar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 0.75rem;
+  color: var(--text-dim);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.02em;
+}
+
+.status-item span {
+  color: var(--text);
+}
+
+.status-sep {
+  color: var(--border);
 }
 
 .canvas-frame {
@@ -192,6 +214,18 @@ body {
 .swatch-acid {
   background: var(--acid);
   box-shadow: 0 0 8px rgba(85, 255, 51, 0.7);
+}
+
+.swatch-eraser {
+  background:
+    linear-gradient(
+      45deg,
+      transparent 42%,
+      var(--text-dim) 42%,
+      var(--text-dim) 58%,
+      transparent 58%
+    ),
+    #1e1e24;
 }
 
 /* ---------- Slider ---------- */

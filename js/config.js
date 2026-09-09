@@ -6,17 +6,17 @@
  */
 const CONFIG = {
   /** Number of simulation cells along the X axis. */
-  GRID_WIDTH: 200,
+  GRID_WIDTH: 250,
 
   /** Number of simulation cells along the Y axis. */
-  GRID_HEIGHT: 200,
+  GRID_HEIGHT: 250,
 
   /** Displayed (CSS) size of the canvas in pixels. Internal canvas resolution
    *  is the grid size; the browser upscales with pixelated rendering. */
-  CANVAS_SIZE: 400,
+  CANVAS_SIZE: 500,
 
   /** Physics ticks executed per animation frame. */
-  TICKS_PER_FRAME: 1,
+  TICKS_PER_FRAME: 2,
 
   /** Brightness factors used by the renderer's static, position-fixed
    *  per-cell texture (it does NOT travel with the particles). */

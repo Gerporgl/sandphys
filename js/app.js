@@ -83,9 +83,39 @@
   // Initial selection.
   selectMaterial(MATERIALS.SAND);
 
+  // ---- Status bar -------------------------------------------------------
+
+  document.getElementById('size-canvas').textContent = `${CONFIG.CANVAS_SIZE} × ${CONFIG.CANVAS_SIZE}`;
+  document.getElementById('size-grid').textContent = `${CONFIG.GRID_WIDTH} × ${CONFIG.GRID_HEIGHT}`;
+
+  const fpsValue = document.getElementById('fps-value');
+  const FPS_UPDATE_INTERVAL_MS = 250;
+  const FPS_SMOOTHING = 0.1; // EMA factor: blend in each new sample a little.
+  let lastFrameTime = performance.now();
+  let fpsSmoothed = 0;
+  let lastFpsUpdate = 0;
+
+  function updateFps(now) {
+    const dt = now - lastFrameTime;
+    lastFrameTime = now;
+    if (dt > 0) {
+      const instantFps = 1000 / dt;
+      fpsSmoothed =
+        fpsSmoothed === 0
+          ? instantFps
+          : fpsSmoothed * (1 - FPS_SMOOTHING) + instantFps * FPS_SMOOTHING;
+    }
+    if (now - lastFpsUpdate >= FPS_UPDATE_INTERVAL_MS) {
+      lastFpsUpdate = now;
+      fpsValue.textContent = fpsSmoothed.toFixed(1);
+    }
+  }
+
   // ---- Main loop --------------------------------------------------------
 
-  function frame() {
+  function frame(now) {
+    updateFps(now);
+
     input.paint();
 
     if (!paused) {

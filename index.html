@@ -37,6 +37,11 @@
             <span class="material-name">Acid</span>
             <kbd>4</kbd>
           </button>
+          <button type="button" class="material-btn" data-material="0">
+            <span class="swatch swatch-eraser"></span>
+            <span class="material-name">Eraser</span>
+            <kbd>5</kbd>
+          </button>
         </div>
       </section>
 
@@ -74,6 +79,14 @@
     <main class="stage">
       <div class="canvas-frame">
         <canvas id="sim-canvas" width="200" height="200"></canvas>
+      </div>
+
+      <div class="status-bar" role="status">
+        <span class="status-item">Canvas&nbsp;<span id="size-canvas">—</span></span>
+        <span class="status-sep">·</span>
+        <span class="status-item">Grid&nbsp;<span id="size-grid">—</span></span>
+        <span class="status-sep">·</span>
+        <span class="status-item">FPS&nbsp;<span id="fps-value">—</span></span>
       </div>
     </main>
   </div>
