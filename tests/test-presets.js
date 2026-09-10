@@ -84,7 +84,8 @@ run(context, () => {
 // Math.random is pinned to 0 so the choice is deterministic.
 run(context, () => {
   const grid = new Grid(250, 250);
-  grid.cells.fill(MATERIALS.WATER); // must be wiped by the clear
+  // Fill with a material no preset uses: it must be wiped by the clear.
+  grid.cells.fill(MATERIALS.ACID);
 
   const originalRandom = Math.random;
   Math.random = () => 0;
@@ -92,12 +93,12 @@ run(context, () => {
     const preset = Presets.random(grid);
     assert.equal(preset, Presets.list[0]);
 
-    let water = 0, drawn = 0;
+    let acid = 0, drawn = 0;
     for (const cell of grid.cells) {
-      if (cell === MATERIALS.WATER) water++;
+      if (cell === MATERIALS.ACID) acid++;
       if (cell !== MATERIALS.EMPTY) drawn++;
     }
-    assert.equal(water, 0, 'previous content cleared');
+    assert.equal(acid, 0, 'previous content cleared');
     assert.ok(drawn > 0, 'preset content drawn');
   } finally {
     Math.random = originalRandom;

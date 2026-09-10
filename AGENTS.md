@@ -6,15 +6,33 @@ build step, no dependencies, no ES modules — plain `<script>` tags so
 `index.html` works from `file://`. Run tests with `node tests/run-tests.js`.
 
 ## Status (as of last session)
-Complete and stable: 17/17 tests passing. Features: 5 paintables (Sand,
+Complete and stable: 18/18 tests passing. Features: 5 paintables (Sand,
 Water, Wall, Acid, Eraser=EMPTY), brush slider with pointer interpolation,
 pause, clear, keyboard shortcuts (1–5 materials, P pause, E erosion, R rain),
 status bar (canvas size / grid size / measured FPS), optional **Erosion** and
 **Rain** modes (both off by default; keep them — user approved leaving them),
-and **Presets** (`js/presets.js`): 5 ASCII-art scenes (Smiley, Shelves,
-Funnel, Water basin, Acid trap) drawn centered on load and after Clear
-(button relabeled "New scene (clear)"); `Presets.random(grid)` clears then
-picks one at random.
+**Presets** (`js/presets.js`): 5 ASCII-art scenes drawn centered on load and
+after Clear (button relabeled "New scene (clear)"); `Presets.random(grid)`
+clears then picks one at random (the user curates the art themselves), and a
+**sleep/rest system** that skips settled particles (see below).
+
+## Sleep system (performance)
+- `Grid.rest` (Uint8Array) counts consecutive ticks a particle failed to
+  act. `Physics.tick` skips a cell when `rest >= CONFIG.PHYSICS.SLEEP_AFTER_TICKS`
+  (3); `grid.wake(x,y)` zeroes rest in a 3×3 neighborhood.
+- **Every mutation must go through `grid.set`/`grid.swap`** — both call
+  `wake` on the affected cells. A direct `grid.cells[i] = ...` write
+  silently breaks wake-up (asleep neighbors never notice).
+- `updateSand/updateLiquid/updateAcid` return a boolean (did anything
+  happen?) and the tick loop bumps `rest` accordingly.
+- **Water never sleeps in erosion mode** (`Physics.erosion`): its idle
+  erosion roll must keep firing. Test `tests/test-sleep.js` covers all of
+  this.
+- Benchmark (Node, 250×250, settled): water 6.1→0.28 ms/frame, acid
+  6.9→0.33, sand 3.3→0.29. Remaining cost is the outer 62,500-cell scan.
+- Test gotcha: liquid pools spread laterally until bounded — a "settled
+  pool" in a test must be full-width or walled, or its surface cells never
+  sleep.
 The user actively tunes `js/config.js` themselves (currently 250×250 grid,
 500px canvas, 2 ticks/frame) — never revert their config values.
 
@@ -30,7 +48,8 @@ The user actively tunes `js/config.js` themselves (currently 250×250 grid,
 - **Physics invariants** (each has a dedicated test): bottom-to-top row
   scan; `moved` flag caps movement at 1 cell/tick; left/right order
   randomized per particle AND per row (removing either causes skew or
-  teleporting). Moves are `Grid.swap`s; acid dissolve writes EMPTY directly.
+  teleporting). Moves are `Grid.swap`s; acid/erosion dissolves use
+  `grid.set(..., EMPTY)` so sleeping neighbors get woken.
 - **Texture is a static spatial noise map in the Renderer** (`shadeMap`),
   NOT stored on particles. This was a deliberate fix: per-particle shades
   caused ghost tints on dissolved cells. Do not reintroduce shade storage

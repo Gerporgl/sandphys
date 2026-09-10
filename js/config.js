@@ -39,6 +39,15 @@ const CONFIG = {
   },
 
   /**
+   * Sleeping particles: after this many consecutive ticks in which a
+   * particle failed to move, it is skipped entirely until one of its
+   * neighbors changes (see js/physics.js and Grid.rest).
+   */
+  PHYSICS: {
+    SLEEP_AFTER_TICKS: 3,
+  },
+
+  /**
    * Presets: small predefined scenes drawn on the grid at startup and
    * after every Clear, chosen at random (see js/presets.js).
    */

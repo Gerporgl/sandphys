@@ -9,6 +9,16 @@
  *   is randomized (both per particle and per row scan direction), so sand
  *   and liquid never skew toward one side of the screen.
  * - The `moved` flag caps movement at one cell per tick per particle.
+ *
+ * Performance: particles that keep failing to move accumulate a "rest"
+ * counter (grid.rest) and sleep after CONFIG.PHYSICS.SLEEP_AFTER_TICKS
+ * consecutive idle ticks — settled liquids no longer cost anything. A cell
+ * (and its 8 neighbors) wakes whenever its material changes: every mutation
+ * goes through `grid.set()` or `move()`, both of which reset rest counters.
+ * A sleeping particle is provably blocked, and it can only become movable
+ * if a neighbor changes, so no wakes are missed. Exception: in erosion mode
+ * water never sleeps, because its idle erosion roll is exactly the kind of
+ * "does nothing visible" activity the rest counter would suppress.
  */
 const Physics = {
   /**
@@ -21,7 +31,8 @@ const Physics = {
 
   tick(grid) {
     grid.moved.fill(0);
-    const { width, height } = grid;
+    const { width, height, cells, moved, rest } = grid;
+    const sleepAfter = CONFIG.PHYSICS.SLEEP_AFTER_TICKS;
 
     for (let y = height - 1; y >= 0; y--) {
       // Randomize the row scan direction to cancel any residual bias.
@@ -29,21 +40,33 @@ const Physics = {
       for (let i = 0; i < width; i++) {
         const x = leftToRight ? i : width - 1 - i;
         const index = y * width + x;
-        if (grid.moved[index]) continue;
+        if (moved[index]) continue;
 
-        switch (grid.cells[index]) {
+        const cell = cells[index];
+        if (cell !== MATERIALS.SAND && cell !== MATERIALS.WATER && cell !== MATERIALS.ACID) {
+          continue; // EMPTY and WALL are static
+        }
+
+        // Sleeping particles are provably blocked; only a neighbor change
+        // (which resets rest) can unblock them. Water is exempt in erosion
+        // mode: its idle erosion roll must keep happening.
+        if (rest[index] >= sleepAfter && !(this.erosion && cell === MATERIALS.WATER)) {
+          continue;
+        }
+
+        let didMove;
+        switch (cell) {
           case MATERIALS.SAND:
-            this.updateSand(grid, x, y);
+            didMove = this.updateSand(grid, x, y);
             break;
           case MATERIALS.WATER:
-            this.updateWater(grid, x, y);
+            didMove = this.updateWater(grid, x, y);
             break;
-          case MATERIALS.ACID:
-            this.updateAcid(grid, x, y);
+          default: // MATERIALS.ACID
+            didMove = this.updateAcid(grid, x, y);
             break;
-          default:
-            break; // EMPTY and WALL are static
         }
+        if (!didMove) rest[index]++;
       }
     }
   },
@@ -53,13 +76,20 @@ const Physics = {
     return Math.random() < 0.5 ? [-1, 1] : [1, -1];
   },
 
-  /** Move a particle from (fx,fy) to (tx,ty), marking both cells as moved. */
+  /**
+   * Move a particle from (fx,fy) to (tx,ty), marking both cells as moved
+   * and waking both areas so sleeping neighbors of the new arrangement
+   * react this same tick.
+   */
   move(grid, fx, fy, tx, ty) {
     const from = grid.index(fx, fy);
     const to = grid.index(tx, ty);
     grid.swap(from, to);
     grid.moved[from] = 1;
     grid.moved[to] = 1;
+    grid.wake(fx, fy);
+    grid.wake(tx, ty);
+    return true;
   },
 
   /**
@@ -68,33 +98,29 @@ const Physics = {
    * falling into water converts the water cell into sand instead
    * (sedimentation — nothing is displaced). If blocked below, slides
    * diagonally down-left or down-right (random order) into empty space.
+   * Returns true if the grain moved (or transformed).
    */
   updateSand(grid, x, y) {
-    if (y + 1 >= grid.height) return;
+    if (y + 1 >= grid.height) return false;
 
     const below = grid.get(x, y + 1);
     if (below === MATERIALS.EMPTY) {
-      this.move(grid, x, y, x, y + 1);
-      return;
+      return this.move(grid, x, y, x, y + 1);
     }
     if (below === MATERIALS.WATER) {
       if (this.erosion) {
         // Sedimentation: the water cell becomes sand and the grain
         // settles into it. The source cell simply empties out.
-        const from = grid.index(x, y);
-        const to = grid.index(x, y + 1);
-        grid.cells[to] = MATERIALS.SAND;
-        grid.cells[from] = MATERIALS.EMPTY;
-        grid.moved[from] = 1;
-        grid.moved[to] = 1;
-        return;
+        grid.set(x, y + 1, MATERIALS.SAND);
+        grid.set(x, y, MATERIALS.EMPTY);
+        grid.moved[grid.index(x, y)] = 1;
+        grid.moved[grid.index(x, y + 1)] = 1;
+        return true;
       }
-      this.move(grid, x, y, x, y + 1);
-      return;
+      return this.move(grid, x, y, x, y + 1);
     }
     if (below === MATERIALS.ACID) {
-      this.move(grid, x, y, x, y + 1);
-      return;
+      return this.move(grid, x, y, x, y + 1);
     }
 
     for (const dx of this.randomOrder()) {
@@ -103,16 +129,17 @@ const Physics = {
         grid.inBounds(nx, y + 1) &&
         grid.get(nx, y + 1) === MATERIALS.EMPTY
       ) {
-        this.move(grid, x, y, nx, y + 1);
-        return;
+        return this.move(grid, x, y, nx, y + 1);
       }
     }
+    return false;
   },
 
   /**
    * Water: in erosion mode, first rolls a chance to dissolve the sand or
    * wall cell directly below it (it then stays in place). Otherwise flows
    * per the shared liquid rules below.
+   * Returns true if the drop moved (or dissolved something).
    */
   updateWater(grid, x, y) {
     if (
@@ -124,10 +151,10 @@ const Physics = {
       if (below === MATERIALS.SAND || below === MATERIALS.WALL) {
         // The cell below is dissolved into water; the drop stays put.
         grid.set(x, y + 1, MATERIALS.WATER);
-        return;
+        return true;
       }
     }
-    this.updateLiquid(grid, x, y);
+    return this.updateLiquid(grid, x, y);
   },
 
   /**
@@ -135,11 +162,11 @@ const Physics = {
    * blocked, tries diagonally down-left / down-right (random order); if
    * still blocked, spreads horizontally into empty space (random order),
    * one cell per tick.
+   * Returns true if the drop moved.
    */
   updateLiquid(grid, x, y) {
     if (y + 1 < grid.height && grid.get(x, y + 1) === MATERIALS.EMPTY) {
-      this.move(grid, x, y, x, y + 1);
-      return;
+      return this.move(grid, x, y, x, y + 1);
     }
 
     for (const dx of this.randomOrder()) {
@@ -149,24 +176,24 @@ const Physics = {
         grid.inBounds(nx, y + 1) &&
         grid.get(nx, y + 1) === MATERIALS.EMPTY
       ) {
-        this.move(grid, x, y, nx, y + 1);
-        return;
+        return this.move(grid, x, y, nx, y + 1);
       }
     }
 
     for (const dx of this.randomOrder()) {
       const nx = x + dx;
       if (grid.inBounds(nx, y) && grid.get(nx, y) === MATERIALS.EMPTY) {
-        this.move(grid, x, y, nx, y);
-        return;
+        return this.move(grid, x, y, nx, y);
       }
     }
+    return false;
   },
 
   /**
    * Acid: flows exactly like water, but first checks its four direct
    * neighbors: if it touches Sand or Wall, both the acid and that neighbor
    * cell dissolve back into empty space.
+   * Returns true if the acid moved (or dissolved something).
    */
   updateAcid(grid, x, y) {
     const index = grid.index(x, y);
@@ -185,13 +212,13 @@ const Physics = {
         neighbor === MATERIALS.WALL
       ) {
         // Both the acid and one pixel of the touched material dissolve.
-        grid.cells[index] = MATERIALS.EMPTY;
-        grid.cells[grid.index(nx, ny)] = MATERIALS.EMPTY;
+        grid.set(x, y, MATERIALS.EMPTY);
+        grid.set(nx, ny, MATERIALS.EMPTY);
         grid.moved[index] = 1;
-        return;
+        return true;
       }
     }
 
-    this.updateLiquid(grid, x, y);
+    return this.updateLiquid(grid, x, y);
   },
 };
