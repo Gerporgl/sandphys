@@ -64,13 +64,13 @@ const CONFIG = {
   RAIN: {
     MIN_DROPS_PER_TICK: 1,
     /** Maximum drops per tick; also the upper bound of the UI rate slider. */
-    MAX_DROPS_PER_TICK: 12,
+    MAX_DROPS_PER_TICK: 100,
     /** Minimum value of the UI rate slider (0 = no rain while enabled). */
     MIN_RATE: 0,
     /** Default value of the UI rate slider (drops per tick). */
     DEFAULT_RATE: 6,
     /** Ticks between picking a new random intensity target. */
-    TARGET_CHANGE_EVERY_TICKS: 240,
+    TARGET_CHANGE_EVERY_TICKS: 4,
     /** How quickly the intensity eases toward the current target (0..1). */
     EASE: 0.02,
     /** Bounds/default for the UI slider giving the probability, in
@@ -89,8 +89,8 @@ const CONFIG = {
     /** Minimum value of the UI drain-speed slider (0 = no draining). */
     MIN_RATE: 0,
     /** Maximum value of the UI drain-speed slider (cells per tick). */
-    MAX_RATE: 20,
+    MAX_RATE: 100,
     /** Default value of the UI drain-speed slider (cells per tick). */
-    DEFAULT_RATE: 5,
+    DEFAULT_RATE: 100,
   },
 };
