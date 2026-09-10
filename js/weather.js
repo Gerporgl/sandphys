@@ -4,8 +4,10 @@
  * When enabled, `update()` (called once per physics tick) spawns water
  * drops in the top row of the grid. The drop rate ("intensity") is not
  * constant: every TARGET_CHANGE_EVERY_TICKS a new random target is picked
- * within the configured bounds, and the current intensity eases toward it,
- * so the rain gently thickens and thins over time.
+ * within the configured bounds (bounded above by `Rain.rate`), and the
+ * current intensity eases toward it, so the rain gently thickens and thins
+ * over time. `Rain.rate` is driven by the UI slider (0 = no rain even
+ * while enabled), so the user can set anything from a drizzle to a downpour.
  *
  * No DOM access here, so it is testable in Node like the rest of the core.
  */
@@ -21,6 +23,16 @@ const Rain = {
   /** Ticks remaining until a new target is picked. */
   ticksUntilNewTarget: 0,
 
+  /** Maximum intensity (drops per tick) set by the UI rate slider. New
+   *  random targets are drawn in [0, rate]. */
+  rate: CONFIG.RAIN.DEFAULT_RATE,
+
+  /** Set the slider-controlled rate, keeping the current target valid. */
+  setRate(rate) {
+    this.rate = rate;
+    this.targetIntensity = Math.min(this.targetIntensity, rate);
+  },
+
   /** Probability (0..1) that a spawned drop is acid instead of water.
    *  Driven by the UI slider; the sim itself only ever sees the 0..1
    *  probability. */
@@ -33,12 +45,12 @@ const Rain = {
     }
 
     if (this.ticksUntilNewTarget <= 0) {
-      const { MIN_DROPS_PER_TICK, MAX_DROPS_PER_TICK, TARGET_CHANGE_EVERY_TICKS } =
-        CONFIG.RAIN;
+      // Wandering happens in [min, rate]; the min bound only applies when
+      // the slider allows at least MIN_DROPS_PER_TICK drops.
+      const min = Math.min(CONFIG.RAIN.MIN_DROPS_PER_TICK, this.rate);
       this.targetIntensity =
-        MIN_DROPS_PER_TICK +
-        Math.random() * (MAX_DROPS_PER_TICK - MIN_DROPS_PER_TICK);
-      this.ticksUntilNewTarget = TARGET_CHANGE_EVERY_TICKS;
+        min + Math.random() * (this.rate - min);
+      this.ticksUntilNewTarget = CONFIG.RAIN.TARGET_CHANGE_EVERY_TICKS;
     }
     this.ticksUntilNewTarget -= 1;
 

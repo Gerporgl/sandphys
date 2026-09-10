@@ -1,7 +1,8 @@
 # Sandfall — Falling Sand Simulation
 
 A falling-sand (cellular automata) sandbox in pure vanilla HTML/CSS/JavaScript.
-No build step, no dependencies — just open `index.html` in a browser.
+No build step required to run — just open `index.html` in a browser.
+(An optional single-file build for sharing is available, see below.)
 
 > AI agents: read [`AGENTS.md`](AGENTS.md) first — project status, invariants,
 > and pitfalls are documented there.
@@ -27,6 +28,22 @@ python3 -m http.server 8000
 
 No `npm install`, no dev server needed — the scripts are plain `<script>` tags
 (no ES modules), so the app also works from `file://`.
+
+## Building a single shareable file
+
+To send the app to someone as one self-contained file, build
+`dist/sandfall.html` with the stylesheet and all ten scripts inlined (in the
+same order as in `index.html`):
+
+```sh
+./build.sh            # inlined, readable JS (~62 KB)
+./build.sh --minify   # additionally minifies the JS with terser (~41 KB)
+```
+
+Requires only Node — no `npm install`. With `--minify`, terser is fetched on
+demand via `npx` on first use if it is not already installed (cached after
+that). CSS is inlined unmodified. The output works from `file://` exactly like
+the source. `dist/` is gitignored — commit nothing from it.
 
 ## Using the app
 
@@ -91,9 +108,12 @@ js/materials.js         Material ids and metadata (names, colors)
 js/grid.js              Grid state (flat typed arrays), no DOM
 js/physics.js           The cellular automaton rules (incl. erosion mode), no DOM
 js/weather.js           Rain system (random-wandering intensity), no DOM
+js/drain.js             Drain system (removes liquid from the bottom row), no DOM
+js/presets.js           ASCII-art starting scenes
 js/renderer.js          ImageData blit of the grid to the canvas
 js/input.js             Mouse/pointer painting (brush disc, hold-to-pour)
 js/app.js               DOM wiring (buttons, slider, pause) + rAF loop
+build.sh / build.mjs    Optional single-file build (see above)
 tests/                  Node-based tests for the physics core
   helpers/sandbox.js    Loads the DOM-free JS files into a vm context
   run-tests.js          Runs every test-*.js file

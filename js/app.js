@@ -60,6 +60,9 @@
     if (event.key === 'r' || event.key === 'R') {
       toggleRain();
     }
+    if (event.key === 'd' || event.key === 'D') {
+      toggleDrain();
+    }
   });
 
   const brushSlider = document.getElementById('brush-size');
@@ -109,6 +112,29 @@
   }
   rainButton.addEventListener('click', toggleRain);
 
+  const drainButton = document.getElementById('drain-btn');
+  function toggleDrain() {
+    Drain.enabled = !Drain.enabled;
+    drainButton.classList.toggle('is-active', Drain.enabled);
+  }
+  drainButton.addEventListener('click', toggleDrain);
+
+  // ---- Rain rate slider --------------------------------------------------
+
+  const rainRateSlider = document.getElementById('rain-rate');
+  const rainRateValue = document.getElementById('rain-rate-value');
+  rainRateSlider.min = String(CONFIG.RAIN.MIN_RATE);
+  rainRateSlider.max = String(CONFIG.RAIN.MAX_DROPS_PER_TICK);
+  rainRateSlider.value = String(CONFIG.RAIN.DEFAULT_RATE);
+
+  function applyRainRate() {
+    Rain.setRate(Number(rainRateSlider.value));
+    rainRateValue.textContent = String(rainRateSlider.value);
+  }
+
+  rainRateSlider.addEventListener('input', applyRainRate);
+  applyRainRate();
+
   // ---- Rain acidity slider ---------------------------------------------
 
   const aciditySlider = document.getElementById('rain-acidity');
@@ -124,6 +150,22 @@
 
   aciditySlider.addEventListener('input', applyRainAcidity);
   applyRainAcidity();
+
+  // ---- Drain speed slider ------------------------------------------------
+
+  const drainRateSlider = document.getElementById('drain-rate');
+  const drainRateValue = document.getElementById('drain-rate-value');
+  drainRateSlider.min = String(CONFIG.DRAIN.MIN_RATE);
+  drainRateSlider.max = String(CONFIG.DRAIN.MAX_RATE);
+  drainRateSlider.value = String(CONFIG.DRAIN.DEFAULT_RATE);
+
+  function applyDrainRate() {
+    Drain.rate = Number(drainRateSlider.value);
+    drainRateValue.textContent = String(drainRateSlider.value);
+  }
+
+  drainRateSlider.addEventListener('input', applyDrainRate);
+  applyDrainRate();
 
   // Initial selection + opening scene.
   selectMaterial(MATERIALS.SAND);
@@ -167,6 +209,7 @@
     if (!paused) {
       for (let t = 0; t < CONFIG.TICKS_PER_FRAME; t++) {
         Rain.update(grid); // no-op while rain is disabled
+        Drain.update(grid); // no-op while drain is disabled
         Physics.tick(grid);
       }
     }

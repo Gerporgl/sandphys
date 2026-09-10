@@ -1,8 +1,9 @@
 /**
  * Test: rain. Disabled -> nothing spawns. Enabled with a forced intensity
  * -> drops appear only in the top row. The wandering intensity target
- * always stays within the configured bounds. The per-drop acid roll
- * (acidChance 0 vs 1) yields pure water / pure acid respectively.
+ * always stays within the slider-controlled rate bounds. The per-drop acid
+ * roll (acidChance 0 vs 1) yields pure water / pure acid respectively.
+ * A rate of 0 keeps the grid dry even while enabled.
  */
 'use strict';
 
@@ -46,10 +47,11 @@ run(sandbox, function () {
     }
   }
 
-  // 3. The random intensity target always stays within the configured
-  //    bounds, and the eased intensity catches up to it over time.
-  //    Reset the forced state from part 2 so a fresh in-bounds target
-  //    is drawn on the first update.
+  // 3. The random intensity target always stays within the rate bounds
+  //    [min(1, rate), rate], and the eased intensity catches up to it
+  //    over time. Reset the forced state from part 2 so a fresh
+  //    in-bounds target is drawn on the first update.
+  Rain.setRate(CONFIG.RAIN.MAX_DROPS_PER_TICK);
   Rain.intensity = 0;
   Rain.targetIntensity = 0;
   Rain.ticksUntilNewTarget = 0;
@@ -57,21 +59,21 @@ run(sandbox, function () {
   for (let t = 0; t < 3000; t++) {
     Rain.update(wander);
     assert.ok(
-      Rain.targetIntensity >= CONFIG.RAIN.MIN_DROPS_PER_TICK,
+      Rain.targetIntensity >= Math.min(CONFIG.RAIN.MIN_DROPS_PER_TICK, Rain.rate),
       'target never below minimum'
     );
     assert.ok(
-      Rain.targetIntensity <= CONFIG.RAIN.MAX_DROPS_PER_TICK,
-      'target never above maximum'
+      Rain.targetIntensity <= Rain.rate,
+      'target never above the slider rate'
     );
   }
   assert.ok(
-    Rain.intensity > CONFIG.RAIN.MIN_DROPS_PER_TICK,
+    Rain.intensity > Math.min(CONFIG.RAIN.MIN_DROPS_PER_TICK, Rain.rate),
     'intensity wanders above the minimum'
   );
   assert.ok(
-    Rain.intensity <= CONFIG.RAIN.MAX_DROPS_PER_TICK,
-    'intensity never exceeds the maximum'
+    Rain.intensity <= Rain.rate,
+    'intensity never exceeds the slider rate'
   );
 
   // 4. The per-drop acid roll: acidChance 0 -> only water, acidChance 1
@@ -106,6 +108,27 @@ run(sandbox, function () {
   assert.ok(acidDrops > 0, 'acidChance 1 spawns acid drops');
   assert.equal(waterDrops, 0, 'acidChance 1 never spawns water');
 
-  // Restore the default so later runs start clean.
+  // 5. setRate() clamps an existing target down to the new rate.
+  Rain.setRate(CONFIG.RAIN.MAX_DROPS_PER_TICK);
+  Rain.targetIntensity = CONFIG.RAIN.MAX_DROPS_PER_TICK;
+  Rain.setRate(3);
+  assert.equal(Rain.targetIntensity, 3, 'target clamped to the new rate');
+
+  // 6. Rate 0 keeps the grid dry even while rain is enabled.
+  Rain.setRate(0);
+  Rain.intensity = 0;
+  Rain.ticksUntilNewTarget = 0;
+  const still = new Grid(40, 40);
+  for (let t = 0; t < 100; t++) {
+    Rain.update(still);
+    assert.equal(Rain.targetIntensity, 0, 'target is 0 at rate 0');
+  }
+  assert.equal(Rain.intensity, 0, 'intensity stays 0 at rate 0');
+  for (let x = 0; x < still.width; x++) {
+    assert.equal(still.get(x, 0), MATERIALS.EMPTY, 'no drops at rate 0');
+  }
+
+  // Restore the defaults so later runs start clean.
   Rain.acidChance = 0;
+  Rain.setRate(CONFIG.RAIN.DEFAULT_RATE);
 });

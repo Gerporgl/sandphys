@@ -2,15 +2,22 @@
 
 ## What this is
 A falling-sand cellular-automata sandbox in pure vanilla HTML/CSS/JS. No
-build step, no dependencies, no ES modules — plain `<script>` tags so
-`index.html` works from `file://`. Run tests with `node tests/run-tests.js`.
+build step required to run, no dependencies, no ES modules — plain
+`<script>` tags so `index.html` works from `file://`. Run tests with
+`node tests/run-tests.js`. An optional single-file build for sharing exists:
+`./build.sh [--minify]` (see `build.mjs`) inlines CSS + JS into
+`dist/sandfall.html`; `dist/` is gitignored.
 
 ## Status (as of last session)
-Complete and stable: 18/18 tests passing. Features: 5 paintables (Sand,
+Complete and stable: 19/19 tests passing. Features: 5 paintables (Sand,
 Water, Wall, Acid, Eraser=EMPTY), brush slider with pointer interpolation,
-pause, clear, keyboard shortcuts (1–5 materials, P pause, E erosion, R rain),
-status bar (canvas size / grid size / measured FPS), optional **Erosion** and
-**Rain** modes (both off by default; keep them — user approved leaving them; Rain has an **acidity slider**, 0–100% default 0, per-drop water-vs-acid roll via `Rain.acidChance` 0..1),
+pause, clear, keyboard shortcuts (1–5 materials, P pause, E erosion, R rain, D drain),
+status bar (canvas size / grid size / measured FPS), optional **Erosion**, **Rain**
+and **Drain** modes (all off by default; keep them — user approved leaving them;
+Rain has a **rate slider**, 0–12 drops/tick default 6 via `Rain.rate`, and an
+**acidity slider**, 0–100% default 0, per-drop water-vs-acid roll via
+`Rain.acidChance` 0..1; Drain has a **speed slider**, 0–20 cells/tick default 5
+via `Drain.rate`, and removes water/acid from the bottom row only),
 **Presets** (`js/presets.js`): 5 ASCII-art scenes drawn centered on load and
 after Clear (button relabeled "New scene (clear)"); `Presets.random(grid)`
 clears then picks one at random (the user curates the art themselves), and a
@@ -39,10 +46,15 @@ The user actively tunes `js/config.js` themselves (currently 250×250 grid,
 ## Key implementation details (easy to break, hard to rediscover)
 - **Files are DOM-free on purpose** except `renderer.js`, `input.js`,
   `app.js`. `config.js`, `materials.js`, `grid.js`, `physics.js`,
-  `weather.js` must stay loadable in Node — tests depend on that.
+  `weather.js`, `drain.js` must stay loadable in Node — tests depend on that.
 - **Tests load the JS files into a `vm` context** (`tests/helpers/sandbox.js`)
   in the same order as `index.html`'s `<script>` tags. If you add a new
-  core file, add it to BOTH places. Top-level `const`/`class` declarations
+  core file, add it to BOTH places.
+- **build.mjs inlines the `<script src>` tags in `index.html` in document
+  order** — a new core file needs no build changes, only the `<script>` tag
+  in `index.html`. It refuses to run if any JS file contains a `</script`
+  literal (inlining would corrupt the page). `--minify` shells out to terser
+  (via npx) per JS file; CSS is always inlined unmodified. Top-level `const`/`class` declarations
   persist across scripts in the same context, which is how the files share
   globals.
 - **Physics invariants** (each has a dedicated test): bottom-to-top row
@@ -63,7 +75,15 @@ The user actively tunes `js/config.js` themselves (currently 250×250 grid,
   `CONFIG.EROSION.WATER_EROSION_CHANCE` to dissolve sand/wall below (drop
   stays put). Acid is unaffected. **Rain** (`js/weather.js`) spawns in row 0
   only, only into EMPTY cells, once per physics tick; intensity eases toward
-  a random target redrawn every `TARGET_CHANGE_EVERY_TICKS`.
+  a random target redrawn every `TARGET_CHANGE_EVERY_TICKS`, bounded above by
+  the slider-driven `Rain.rate` (wander is `[min(MIN_DROPS_PER_TICK, rate),
+  rate]`); `Rain.setRate()` clamps the current target. **Drain**
+  (`js/drain.js`) runs once per physics tick: it collects water/acid cells in
+  the bottom row and removes random ones, `Drain.rate` cells per tick
+  (fractional rates accumulate in `Drain._budget`); solids are never drained,
+  removal goes through `grid.set` so neighbors wake. Rain + Drain together
+  keep a raining grid from filling up (verified: heavy rain, 5000 ticks →
+  ~1% filled).
 - **Painting**: `Input.paint()` runs once per frame (pours while held still)
   and interpolates the brush disc along a line from the last stamped
   position (fast mouse → continuous stream). `lastX/lastY` reset on

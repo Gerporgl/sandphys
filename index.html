@@ -67,7 +67,23 @@
           <button type="button" id="rain-btn" class="action-btn" title="Rain falls from the top of the grid">
             🌧 Rain <kbd>R</kbd>
           </button>
+          <button type="button" id="drain-btn" class="action-btn" title="Drains water and acid out of the bottom of the grid">
+            🚰 Drain <kbd>D</kbd>
+          </button>
         </div>
+      </section>
+
+      <section class="panel-section">
+        <h2>Rain rate <span id="rain-rate-value" class="value-badge">6</span></h2>
+        <input
+          type="range"
+          id="rain-rate"
+          min="0"
+          max="12"
+          value="6"
+          step="1"
+          aria-label="Rain rate"
+        />
       </section>
 
       <section class="panel-section">
@@ -80,6 +96,19 @@
           value="0"
           step="1"
           aria-label="Rain acidity"
+        />
+      </section>
+
+      <section class="panel-section">
+        <h2>Drain speed <span id="drain-rate-value" class="value-badge">5</span></h2>
+        <input
+          type="range"
+          id="drain-rate"
+          min="0"
+          max="20"
+          value="5"
+          step="1"
+          aria-label="Drain speed"
         />
       </section>
 
@@ -122,6 +151,7 @@
   <script src="js/grid.js"></script>
   <script src="js/physics.js"></script>
   <script src="js/weather.js"></script>
+  <script src="js/drain.js"></script>
   <script src="js/presets.js"></script>
   <script src="js/renderer.js"></script>
   <script src="js/input.js"></script>
