@@ -1,7 +1,8 @@
 /**
  * Test: rain. Disabled -> nothing spawns. Enabled with a forced intensity
  * -> drops appear only in the top row. The wandering intensity target
- * always stays within the configured bounds.
+ * always stays within the configured bounds. The per-drop acid roll
+ * (acidChance 0 vs 1) yields pure water / pure acid respectively.
  */
 'use strict';
 
@@ -72,4 +73,39 @@ run(sandbox, function () {
     Rain.intensity <= CONFIG.RAIN.MAX_DROPS_PER_TICK,
     'intensity never exceeds the maximum'
   );
+
+  // 4. The per-drop acid roll: acidChance 0 -> only water, acidChance 1
+  //    -> only acid. (Reset the intensity state from part 3 first.)
+  Rain.intensity = 100;
+  Rain.targetIntensity = 100;
+  Rain.ticksUntilNewTarget = 1000;
+
+  Rain.acidChance = 0;
+  const fresh = new Grid(40, 40);
+  Rain.update(fresh);
+  let waterDrops = 0;
+  let acidDrops = 0;
+  for (let x = 0; x < fresh.width; x++) {
+    const cell = fresh.get(x, 0);
+    if (cell === MATERIALS.WATER) waterDrops++;
+    if (cell === MATERIALS.ACID) acidDrops++;
+  }
+  assert.ok(waterDrops > 0, 'acidChance 0 still spawns water drops');
+  assert.equal(acidDrops, 0, 'acidChance 0 never spawns acid');
+
+  const sour = new Grid(40, 40);
+  Rain.acidChance = 1;
+  Rain.update(sour);
+  waterDrops = 0;
+  acidDrops = 0;
+  for (let x = 0; x < sour.width; x++) {
+    const cell = sour.get(x, 0);
+    if (cell === MATERIALS.WATER) waterDrops++;
+    if (cell === MATERIALS.ACID) acidDrops++;
+  }
+  assert.ok(acidDrops > 0, 'acidChance 1 spawns acid drops');
+  assert.equal(waterDrops, 0, 'acidChance 1 never spawns water');
+
+  // Restore the default so later runs start clean.
+  Rain.acidChance = 0;
 });

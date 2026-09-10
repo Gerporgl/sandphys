@@ -21,6 +21,11 @@ const Rain = {
   /** Ticks remaining until a new target is picked. */
   ticksUntilNewTarget: 0,
 
+  /** Probability (0..1) that a spawned drop is acid instead of water.
+   *  Driven by the UI slider; the sim itself only ever sees the 0..1
+   *  probability. */
+  acidChance: 0,
+
   update(grid) {
     if (!this.enabled) {
       this.intensity = 0;
@@ -42,10 +47,13 @@ const Rain = {
     const drops = Math.round(this.intensity);
     for (let i = 0; i < drops; i++) {
       const x = (Math.random() * grid.width) | 0;
+      // Each drop independently rolls to be acid or water.
+      const dropMaterial =
+        Math.random() < this.acidChance ? MATERIALS.ACID : MATERIALS.WATER;
       // Only spawn into empty cells so drops don't overwrite material
       // that is already falling through the top row.
       if (grid.get(x, 0) === MATERIALS.EMPTY) {
-        grid.set(x, 0, MATERIALS.WATER);
+        grid.set(x, 0, dropMaterial);
       }
     }
   },

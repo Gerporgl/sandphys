@@ -109,6 +109,22 @@
   }
   rainButton.addEventListener('click', toggleRain);
 
+  // ---- Rain acidity slider ---------------------------------------------
+
+  const aciditySlider = document.getElementById('rain-acidity');
+  const acidityValue = document.getElementById('rain-acidity-value');
+  aciditySlider.min = String(CONFIG.RAIN.MIN_ACID_PERCENT);
+  aciditySlider.max = String(CONFIG.RAIN.MAX_ACID_PERCENT);
+  aciditySlider.value = String(CONFIG.RAIN.DEFAULT_ACID_PERCENT);
+
+  function applyRainAcidity() {
+    Rain.acidChance = Number(aciditySlider.value) / 100;
+    acidityValue.textContent = `${aciditySlider.value}%`;
+  }
+
+  aciditySlider.addEventListener('input', applyRainAcidity);
+  applyRainAcidity();
+
   // Initial selection + opening scene.
   selectMaterial(MATERIALS.SAND);
   Presets.random(grid);

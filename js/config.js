@@ -68,5 +68,10 @@ const CONFIG = {
     TARGET_CHANGE_EVERY_TICKS: 240,
     /** How quickly the intensity eases toward the current target (0..1). */
     EASE: 0.02,
+    /** Bounds/default for the UI slider giving the probability, in
+     *  percent, that a given rain drop is acid instead of water. */
+    MIN_ACID_PERCENT: 0,
+    MAX_ACID_PERCENT: 100,
+    DEFAULT_ACID_PERCENT: 0,
   },
 };

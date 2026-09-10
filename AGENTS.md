@@ -10,7 +10,7 @@ Complete and stable: 18/18 tests passing. Features: 5 paintables (Sand,
 Water, Wall, Acid, Eraser=EMPTY), brush slider with pointer interpolation,
 pause, clear, keyboard shortcuts (1–5 materials, P pause, E erosion, R rain),
 status bar (canvas size / grid size / measured FPS), optional **Erosion** and
-**Rain** modes (both off by default; keep them — user approved leaving them),
+**Rain** modes (both off by default; keep them — user approved leaving them; Rain has an **acidity slider**, 0–100% default 0, per-drop water-vs-acid roll via `Rain.acidChance` 0..1),
 **Presets** (`js/presets.js`): 5 ASCII-art scenes drawn centered on load and
 after Clear (button relabeled "New scene (clear)"); `Presets.random(grid)`
 clears then picks one at random (the user curates the art themselves), and a
