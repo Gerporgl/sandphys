@@ -13,13 +13,13 @@ Complete and stable: 19/19 tests passing. Features: 5 paintables (Sand,
 Water, Wall, Acid, Eraser=EMPTY), brush slider with pointer interpolation,
 pause, clear, keyboard shortcuts (1–5 materials, P pause, E erosion, R rain, D drain),
 status bar (canvas size / grid size / measured FPS), optional **Erosion**, **Rain**
-and **Drain** modes (all off by default; keep them — user approved leaving them;
-Rain has a **rate slider**, 0–12 drops/tick default 6 via `Rain.rate`, and an
-**acidity slider**, 0–100% default 0, per-drop water-vs-acid roll via
-`Rain.acidChance` 0..1; Drain has a **speed slider**, 0–20 cells/tick default 5
-via `Drain.rate`, and removes water/acid from the bottom row only),
+and **Drain** modes (Rain and Drain ON by default via `CONFIG.RAIN/DRAIN.ENABLED_BY_DEFAULT`, keep them — user approved leaving them;
+Rain has a **rate slider** (drops/tick, default via `CONFIG.RAIN.DEFAULT_RATE`) driving `Rain.rate`, and an
+**acidity slider**, 0–100% (default in CONFIG.RAIN; user-tuned), per-drop water-vs-acid roll via
+`Rain.acidChance` 0..1; Drain has a **speed slider** (cells/tick, default via
+`CONFIG.DRAIN.DEFAULT_RATE`) driving `Drain.rate`, and removes water/acid from the bottom row only),
 **Presets** (`js/presets.js`): 5 ASCII-art scenes drawn centered on load and
-after Clear (button relabeled "New scene (clear)"); `Presets.random(grid)`
+after Clear (button relabeled "New scene (clear)"); the page always opens on the **Smiley** preset (`Presets.byName`), while Clear randomizes; `Presets.random(grid)`
 clears then picks one at random (the user curates the art themselves), and a
 **sleep/rest system** that skips settled particles (see below).
 

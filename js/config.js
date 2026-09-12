@@ -62,13 +62,15 @@ const CONFIG = {
    * below, easing toward a new random target every TARGET_CHANGE_EVERY_TICKS.
    */
   RAIN: {
+    /** Whether rain is switched on when the page loads. */
+    ENABLED_BY_DEFAULT: true,
     MIN_DROPS_PER_TICK: 1,
     /** Maximum drops per tick; also the upper bound of the UI rate slider. */
     MAX_DROPS_PER_TICK: 100,
     /** Minimum value of the UI rate slider (0 = no rain while enabled). */
     MIN_RATE: 0,
     /** Default value of the UI rate slider (drops per tick). */
-    DEFAULT_RATE: 6,
+    DEFAULT_RATE: 10,
     /** Ticks between picking a new random intensity target. */
     TARGET_CHANGE_EVERY_TICKS: 4,
     /** How quickly the intensity eases toward the current target (0..1). */
@@ -77,7 +79,7 @@ const CONFIG = {
      *  percent, that a given rain drop is acid instead of water. */
     MIN_ACID_PERCENT: 0,
     MAX_ACID_PERCENT: 100,
-    DEFAULT_ACID_PERCENT: 0,
+    DEFAULT_ACID_PERCENT: 50,
   },
 
   /**
@@ -86,6 +88,8 @@ const CONFIG = {
    * flow to the bottom and disappear instead of filling the grid.
    */
   DRAIN: {
+    /** Whether drain is switched on when the page loads. */
+    ENABLED_BY_DEFAULT: true,
     /** Minimum value of the UI drain-speed slider (0 = no draining). */
     MIN_RATE: 0,
     /** Maximum value of the UI drain-speed slider (cells per tick). */

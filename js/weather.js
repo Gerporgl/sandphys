@@ -12,7 +12,7 @@
  * No DOM access here, so it is testable in Node like the rest of the core.
  */
 const Rain = {
-  enabled: false,
+  enabled: CONFIG.RAIN.ENABLED_BY_DEFAULT,
 
   /** Current drops-per-tick (float, eased toward targetIntensity). */
   intensity: 0,

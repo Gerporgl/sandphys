@@ -294,6 +294,11 @@ const Presets = {
   /** All available preset scenes. */
   list: PRESETS,
 
+  /** Look up a preset by its (unique) display name. */
+  byName(name) {
+    return PRESETS.find((p) => p.name === name);
+  },
+
   /**
    * Draw `preset` centered on the grid, scaled (nearest neighbor) to fit
    * within CONFIG.PRESETS.MAX_FRACTION of the grid in each dimension.

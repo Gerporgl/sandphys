@@ -13,7 +13,7 @@
  * No DOM access here, so it is testable in Node like the rest of the core.
  */
 const Drain = {
-  enabled: false,
+  enabled: CONFIG.DRAIN.ENABLED_BY_DEFAULT,
 
   /** Cells removed per tick (float; fractional part accumulates). */
   rate: CONFIG.DRAIN.DEFAULT_RATE,

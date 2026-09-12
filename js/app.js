@@ -167,9 +167,14 @@
   drainRateSlider.addEventListener('input', applyDrainRate);
   applyDrainRate();
 
-  // Initial selection + opening scene.
+  // Rain/drain start on (see CONFIG) — reflect that in the buttons.
+  rainButton.classList.toggle('is-active', Rain.enabled);
+  drainButton.classList.toggle('is-active', Drain.enabled);
+
+  // Initial selection + opening scene: always the Smiley.
   selectMaterial(MATERIALS.SAND);
-  Presets.random(grid);
+  grid.clear();
+  Presets.apply(grid, Presets.byName('Smiley'));
 
   // ---- Status bar -------------------------------------------------------
 
