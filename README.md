@@ -29,21 +29,18 @@ python3 -m http.server 8000
 No `npm install`, no dev server needed — the scripts are plain `<script>` tags
 (no ES modules), so the app also works from `file://`.
 
-## Try it without cloning
+## Try it
 
-GitHub can't run HTML files in the browser (it serves them as raw text, and
-rendered READMEs can't embed live pages), so the fastest way to play is:
+**Play it online (no install, no clone):**
 
-1. Open [`dist/sandfall.html`](dist/sandfall.html) in the repo (it's committed
-   and minified — no build step needed).
-2. Click the **Raw** button, then `Ctrl/Cmd+S` to save the file locally
-   (or right-click → *Save link as…*).
-3. Double-click the saved file — it's fully self-contained and runs from
-   `file://`.
+🎮 [https://gerporgl.github.io/sandphys/](https://gerporgl.github.io/sandphys/) —
+hosted on GitHub Pages (deployed from the `master` branch root, so it serves
+`index.html`; the minified single file is at
+[.../dist/sandfall.html](https://gerporgl.github.io/sandphys/dist/sandfall.html)).
 
-(If you host this repo with GitHub Pages enabled, `dist/sandfall.html` would
-be directly playable in the browser — Pages serves real HTML, unlike the repo
-file view.)
+**Or run it locally:** open `index.html` in any modern browser (or double-click
+the self-contained [`dist/sandfall.html`](dist/sandfall.html) — it works from
+`file://` with no build step).
 
 ## Building a single shareable file
 
