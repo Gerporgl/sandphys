@@ -1,0 +1,524 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sandfall — Falling Sand Simulation</title>
+  <style>
+/* ============================================================
+   Sandfall — dark dashboard theme
+   ============================================================ */
+
+:root {
+  --bg: #121218;
+  --bg-panel: #1a1a22;
+  --bg-elevated: #22222c;
+  --border: #2e2e3a;
+  --text: #e6e6ee;
+  --text-dim: #9a9aae;
+  --accent: #8896ff;
+  --danger: #ff6b6b;
+
+  --sand: #e9c46a;
+  --water: #457b9d;
+  --wall: #6c757d;
+  --acid: #55ff33;
+
+  /* Fallback only — js/app.js overrides this at startup from
+   * CONFIG.CANVAS_SIZE so the layout always matches the config. */
+  --canvas-size: 400px;
+  --radius: 10px;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  height: 100%;
+}
+
+body {
+  font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
+  background: radial-gradient(circle at 30% 20%, #17171f 0%, var(--bg) 70%);
+  color: var(--text);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ---------- Layout ---------- */
+
+.app {
+  min-height: 100vh;
+  display: grid;
+  grid-template-columns: 280px 1fr;
+  gap: 24px;
+  padding: 24px;
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+.stage {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: start; /* top-align with the panel */
+  gap: 12px;
+}
+
+/* ---------- Status bar ---------- */
+
+.status-bar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 0.75rem;
+  color: var(--text-dim);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.02em;
+}
+
+.status-item span {
+  color: var(--text);
+}
+
+.status-sep {
+  color: var(--border);
+}
+
+.canvas-frame {
+  padding: 14px;
+  background: var(--bg-panel);
+  border: 1px solid var(--border);
+  border-radius: calc(var(--radius) + 6px);
+  box-shadow:
+    0 20px 50px rgba(0, 0, 0, 0.55),
+    inset 0 1px 0 rgba(255, 255, 255, 0.04);
+}
+
+#sim-canvas {
+  display: block;
+  width: var(--canvas-size);
+  height: var(--canvas-size);
+  background: #1e1e24;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+  cursor: crosshair;
+  touch-action: none;
+  user-select: none;
+}
+
+/* ---------- Panel ---------- */
+
+.panel {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  background: var(--bg-panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 20px 18px;
+  height: fit-content;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+}
+
+.panel-header h1 {
+  margin: 0;
+  font-size: 1.5rem;
+  letter-spacing: 0.02em;
+  background: linear-gradient(90deg, var(--sand), var(--accent));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.subtitle {
+  margin: 2px 0 0;
+  font-size: 0.8rem;
+  color: var(--text-dim);
+}
+
+.panel-section h2 {
+  margin: 0 0 10px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--text-dim);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.value-badge {
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 1px 9px;
+  font-size: 0.72rem;
+  color: var(--text);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---------- Material buttons ---------- */
+
+.material-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.material-btn {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 9px 12px;
+  background: var(--bg-elevated);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  font: inherit;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: border-color 0.15s ease, transform 0.1s ease,
+    box-shadow 0.15s ease;
+}
+
+.material-btn:hover {
+  transform: translateY(-1px);
+  border-color: #3d3d4d;
+}
+
+.material-btn kbd {
+  margin-left: auto;
+  font-family: inherit;
+  font-size: 0.68rem;
+  color: var(--text-dim);
+  background: #2a2a36;
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  padding: 1px 6px;
+}
+
+.material-btn.is-active {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 1px var(--accent), 0 4px 14px rgba(136, 150, 255, 0.15);
+}
+
+.swatch {
+  width: 16px;
+  height: 16px;
+  border-radius: 5px;
+  flex: none;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.swatch-sand { background: var(--sand); }
+.swatch-water { background: var(--water); }
+.swatch-wall { background: var(--wall); }
+.swatch-acid {
+  background: var(--acid);
+  box-shadow: 0 0 8px rgba(85, 255, 51, 0.7);
+}
+
+.swatch-eraser {
+  background:
+    linear-gradient(
+      45deg,
+      transparent 42%,
+      var(--text-dim) 42%,
+      var(--text-dim) 58%,
+      transparent 58%
+    ),
+    #1e1e24;
+}
+
+/* ---------- Slider ---------- */
+
+input[type="range"] {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 6px;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  outline: none;
+  cursor: pointer;
+}
+
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--accent);
+  border: 2px solid #10101a;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
+}
+
+input[type="range"]::-moz-range-thumb {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--accent);
+  border: 2px solid #10101a;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
+}
+
+/* ---------- Action buttons ---------- */
+
+.action-row {
+  display: flex;
+  gap: 8px;
+}
+
+.action-btn {
+  flex: 1;
+  padding: 9px 10px;
+  font: inherit;
+  font-size: 0.85rem;
+  color: var(--text);
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  cursor: pointer;
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+
+.action-btn:hover {
+  border-color: #3d3d4d;
+}
+
+.action-btn.danger {
+  color: var(--danger);
+}
+
+.action-btn.danger:hover {
+  background: rgba(255, 107, 107, 0.1);
+  border-color: rgba(255, 107, 107, 0.5);
+}
+
+.action-btn.is-active {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.action-btn kbd {
+  font-family: inherit;
+  font-size: 0.65rem;
+  color: var(--text-dim);
+  background: #2a2a36;
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  padding: 0 5px;
+  margin-left: 4px;
+}
+
+/* ---------- Footer ---------- */
+
+.panel-footer p {
+  margin: 0;
+  font-size: 0.75rem;
+  line-height: 1.5;
+  color: var(--text-dim);
+}
+
+/* ---------- Small screens ---------- */
+
+@media (max-width: 760px) {
+  .app {
+    grid-template-columns: 1fr;
+    justify-items: center;
+  }
+
+  .panel {
+    width: 100%;
+    max-width: var(--canvas-size);
+  }
+
+  #sim-canvas {
+    width: min(var(--canvas-size), 88vw);
+    height: min(var(--canvas-size), 88vw);
+  }
+}
+
+</style>
+</head>
+<body>
+  <div class="app">
+    <aside class="panel">
+      <header class="panel-header">
+        <h1>Sandfall</h1>
+        <p class="subtitle">Falling sand sandbox</p>
+      </header>
+
+      <section class="panel-section">
+        <h2>Material</h2>
+        <div class="material-list">
+          <button type="button" class="material-btn is-active" data-material="1">
+            <span class="swatch swatch-sand"></span>
+            <span class="material-name">Sand</span>
+            <kbd>1</kbd>
+          </button>
+          <button type="button" class="material-btn" data-material="2">
+            <span class="swatch swatch-water"></span>
+            <span class="material-name">Water</span>
+            <kbd>2</kbd>
+          </button>
+          <button type="button" class="material-btn" data-material="3">
+            <span class="swatch swatch-wall"></span>
+            <span class="material-name">Wall</span>
+            <kbd>3</kbd>
+          </button>
+          <button type="button" class="material-btn" data-material="4">
+            <span class="swatch swatch-acid"></span>
+            <span class="material-name">Acid</span>
+            <kbd>4</kbd>
+          </button>
+          <button type="button" class="material-btn" data-material="0">
+            <span class="swatch swatch-eraser"></span>
+            <span class="material-name">Eraser</span>
+            <kbd>5</kbd>
+          </button>
+        </div>
+      </section>
+
+      <section class="panel-section">
+        <h2>Brush size <span id="brush-value" class="value-badge">4</span></h2>
+        <input
+          type="range"
+          id="brush-size"
+          min="1"
+          max="20"
+          value="4"
+          step="1"
+          aria-label="Brush size"
+        />
+      </section>
+
+      <section class="panel-section">
+        <h2>Modes</h2>
+        <div class="action-row">
+          <button type="button" id="erosion-btn" class="action-btn" title="Sand sediments into water; water dissolves sand and walls">
+            ⛏ Erosion <kbd>E</kbd>
+          </button>
+          <button type="button" id="rain-btn" class="action-btn" title="Rain falls from the top of the grid">
+            🌧 Rain <kbd>R</kbd>
+          </button>
+          <button type="button" id="drain-btn" class="action-btn" title="Drains water and acid out of the bottom of the grid">
+            🚰 Drain <kbd>D</kbd>
+          </button>
+        </div>
+      </section>
+
+      <section class="panel-section">
+        <h2>Rain rate <span id="rain-rate-value" class="value-badge">6</span></h2>
+        <input
+          type="range"
+          id="rain-rate"
+          min="0"
+          max="12"
+          value="6"
+          step="1"
+          aria-label="Rain rate"
+        />
+      </section>
+
+      <section class="panel-section">
+        <h2>Rain acidity <span id="rain-acidity-value" class="value-badge">0%</span></h2>
+        <input
+          type="range"
+          id="rain-acidity"
+          min="0"
+          max="100"
+          value="0"
+          step="1"
+          aria-label="Rain acidity"
+        />
+      </section>
+
+      <section class="panel-section">
+        <h2>Drain speed <span id="drain-rate-value" class="value-badge">5</span></h2>
+        <input
+          type="range"
+          id="drain-rate"
+          min="0"
+          max="20"
+          value="5"
+          step="1"
+          aria-label="Drain speed"
+        />
+      </section>
+
+      <section class="panel-section">
+        <h2>Actions</h2>
+        <div class="action-row">
+          <button type="button" id="clear-btn" class="action-btn danger">
+            New scene (clear)
+          </button>
+          <button type="button" id="pause-btn" class="action-btn">
+            ⏸ Pause
+          </button>
+        </div>
+      </section>
+
+      <footer class="panel-footer">
+        <p>Click &amp; drag on the canvas to pour material.<br />
+        Hold the button down to keep the stream flowing.</p>
+      </footer>
+    </aside>
+
+    <main class="stage">
+      <div class="canvas-frame">
+        <canvas id="sim-canvas" width="200" height="200"></canvas>
+      </div>
+
+      <div class="status-bar" role="status">
+        <span class="status-item">Canvas&nbsp;<span id="size-canvas">—</span></span>
+        <span class="status-sep">·</span>
+        <span class="status-item">Grid&nbsp;<span id="size-grid">—</span></span>
+        <span class="status-sep">·</span>
+        <span class="status-item">FPS&nbsp;<span id="fps-value">—</span></span>
+      </div>
+    </main>
+  </div>
+
+  <!-- Plain scripts (no modules) so the app also works from file:// -->
+  <script>
+const CONFIG={GRID_WIDTH:250,GRID_HEIGHT:250,CANVAS_SIZE:500,TICKS_PER_FRAME:2,SHADE_VARIATIONS:[.78,.9,1,1.1,1.22],DEFAULT_BRUSH_RADIUS:4,MIN_BRUSH_RADIUS:1,MAX_BRUSH_RADIUS:20,EROSION:{WATER_EROSION_CHANCE:.01},PHYSICS:{SLEEP_AFTER_TICKS:3},PRESETS:{MAX_FRACTION:.75},RAIN:{ENABLED_BY_DEFAULT:true,MIN_DROPS_PER_TICK:1,MAX_DROPS_PER_TICK:100,MIN_RATE:0,DEFAULT_RATE:10,TARGET_CHANGE_EVERY_TICKS:4,EASE:.02,MIN_ACID_PERCENT:0,MAX_ACID_PERCENT:100,DEFAULT_ACID_PERCENT:50},DRAIN:{ENABLED_BY_DEFAULT:true,MIN_RATE:0,MAX_RATE:100,DEFAULT_RATE:100}};
+</script>
+  <script>
+const MATERIALS=Object.freeze({EMPTY:0,SAND:1,WATER:2,WALL:3,ACID:4});const MATERIAL_INFO={[MATERIALS.EMPTY]:{name:"Empty",color:"#1e1e24",paintable:true,isEraser:true},[MATERIALS.SAND]:{name:"Sand",color:"#e9c46a",paintable:true},[MATERIALS.WATER]:{name:"Water",color:"#457b9d",paintable:true},[MATERIALS.WALL]:{name:"Wall",color:"#6c757d",paintable:true},[MATERIALS.ACID]:{name:"Acid",color:"#55ff33",paintable:true}};const PAINTABLE_MATERIALS=[MATERIALS.SAND,MATERIALS.WATER,MATERIALS.WALL,MATERIALS.ACID,MATERIALS.EMPTY];
+</script>
+  <script>
+class Grid{constructor(width,height){this.width=width;this.height=height;this.cells=new Uint8Array(width*height);this.moved=new Uint8Array(width*height);this.rest=new Uint8Array(width*height)}index(x,y){return y*this.width+x}inBounds(x,y){return x>=0&&x<this.width&&y>=0&&y<this.height}get(x,y){return this.cells[this.index(x,y)]}set(x,y,material){if(!this.inBounds(x,y))return;const i=this.index(x,y);if(this.cells[i]===material)return;this.cells[i]=material;this.wake(x,y)}wake(x,y){for(let dy=-1;dy<=1;dy++){const ny=y+dy;if(ny<0||ny>=this.height)continue;for(let dx=-1;dx<=1;dx++){const nx=x+dx;if(nx<0||nx>=this.width)continue;this.rest[ny*this.width+nx]=0}}}swap(a,b){const m=this.cells[a];this.cells[a]=this.cells[b];this.cells[b]=m}clear(){this.cells.fill(MATERIALS.EMPTY);this.moved.fill(0);this.rest.fill(0)}}
+</script>
+  <script>
+const Physics={erosion:false,tick(grid){grid.moved.fill(0);const{width:width,height:height,cells:cells,moved:moved,rest:rest}=grid;const sleepAfter=CONFIG.PHYSICS.SLEEP_AFTER_TICKS;for(let y=height-1;y>=0;y--){const leftToRight=Math.random()<.5;for(let i=0;i<width;i++){const x=leftToRight?i:width-1-i;const index=y*width+x;if(moved[index])continue;const cell=cells[index];if(cell!==MATERIALS.SAND&&cell!==MATERIALS.WATER&&cell!==MATERIALS.ACID){continue}if(rest[index]>=sleepAfter&&!(this.erosion&&cell===MATERIALS.WATER)){continue}let didMove;switch(cell){case MATERIALS.SAND:didMove=this.updateSand(grid,x,y);break;case MATERIALS.WATER:didMove=this.updateWater(grid,x,y);break;default:didMove=this.updateAcid(grid,x,y);break}if(!didMove)rest[index]++}}},randomOrder(){return Math.random()<.5?[-1,1]:[1,-1]},move(grid,fx,fy,tx,ty){const from=grid.index(fx,fy);const to=grid.index(tx,ty);grid.swap(from,to);grid.moved[from]=1;grid.moved[to]=1;grid.wake(fx,fy);grid.wake(tx,ty);return true},updateSand(grid,x,y){if(y+1>=grid.height)return false;const below=grid.get(x,y+1);if(below===MATERIALS.EMPTY){return this.move(grid,x,y,x,y+1)}if(below===MATERIALS.WATER){if(this.erosion){grid.set(x,y+1,MATERIALS.SAND);grid.set(x,y,MATERIALS.EMPTY);grid.moved[grid.index(x,y)]=1;grid.moved[grid.index(x,y+1)]=1;return true}return this.move(grid,x,y,x,y+1)}if(below===MATERIALS.ACID){return this.move(grid,x,y,x,y+1)}for(const dx of this.randomOrder()){const nx=x+dx;if(grid.inBounds(nx,y+1)&&grid.get(nx,y+1)===MATERIALS.EMPTY){return this.move(grid,x,y,nx,y+1)}}return false},updateWater(grid,x,y){if(this.erosion&&y+1<grid.height&&Math.random()<CONFIG.EROSION.WATER_EROSION_CHANCE){const below=grid.get(x,y+1);if(below===MATERIALS.SAND||below===MATERIALS.WALL){grid.set(x,y+1,MATERIALS.WATER);return true}}return this.updateLiquid(grid,x,y)},updateLiquid(grid,x,y){if(y+1<grid.height&&grid.get(x,y+1)===MATERIALS.EMPTY){return this.move(grid,x,y,x,y+1)}for(const dx of this.randomOrder()){const nx=x+dx;if(y+1<grid.height&&grid.inBounds(nx,y+1)&&grid.get(nx,y+1)===MATERIALS.EMPTY){return this.move(grid,x,y,nx,y+1)}}for(const dx of this.randomOrder()){const nx=x+dx;if(grid.inBounds(nx,y)&&grid.get(nx,y)===MATERIALS.EMPTY){return this.move(grid,x,y,nx,y)}}return false},updateAcid(grid,x,y){const index=grid.index(x,y);const neighbors=[[x,y-1],[x,y+1],[x-1,y],[x+1,y]];for(const[nx,ny]of neighbors){if(!grid.inBounds(nx,ny))continue;const neighbor=grid.get(nx,ny);if(neighbor===MATERIALS.SAND||neighbor===MATERIALS.WALL){grid.set(x,y,MATERIALS.EMPTY);grid.set(nx,ny,MATERIALS.EMPTY);grid.moved[index]=1;return true}}return this.updateLiquid(grid,x,y)}};
+</script>
+  <script>
+const Rain={enabled:CONFIG.RAIN.ENABLED_BY_DEFAULT,intensity:0,targetIntensity:0,ticksUntilNewTarget:0,rate:CONFIG.RAIN.DEFAULT_RATE,setRate(rate){this.rate=rate;this.targetIntensity=Math.min(this.targetIntensity,rate)},acidChance:0,update(grid){if(!this.enabled){this.intensity=0;return}if(this.ticksUntilNewTarget<=0){const min=Math.min(CONFIG.RAIN.MIN_DROPS_PER_TICK,this.rate);this.targetIntensity=min+Math.random()*(this.rate-min);this.ticksUntilNewTarget=CONFIG.RAIN.TARGET_CHANGE_EVERY_TICKS}this.ticksUntilNewTarget-=1;this.intensity+=(this.targetIntensity-this.intensity)*CONFIG.RAIN.EASE;const drops=Math.round(this.intensity);for(let i=0;i<drops;i++){const x=Math.random()*grid.width|0;const dropMaterial=Math.random()<this.acidChance?MATERIALS.ACID:MATERIALS.WATER;if(grid.get(x,0)===MATERIALS.EMPTY){grid.set(x,0,dropMaterial)}}}};
+</script>
+  <script>
+const Drain={enabled:CONFIG.DRAIN.ENABLED_BY_DEFAULT,rate:CONFIG.DRAIN.DEFAULT_RATE,_budget:0,update(grid){if(!this.enabled){this._budget=0;return}this._budget+=this.rate;let units=Math.floor(this._budget);if(units<=0)return;this._budget-=units;const y=grid.height-1;const candidates=[];for(let x=0;x<grid.width;x++){const cell=grid.get(x,y);if(cell===MATERIALS.WATER||cell===MATERIALS.ACID){candidates.push(x)}}while(units-- >0&&candidates.length>0){const i=Math.random()*candidates.length|0;const x=candidates[i];candidates[i]=candidates[candidates.length-1];candidates.pop();grid.set(x,y,MATERIALS.EMPTY)}}};
+</script>
+  <script>
+const PRESET_GLYPHS={".":MATERIALS.EMPTY,s:MATERIALS.SAND,w:MATERIALS.WATER,"#":MATERIALS.WALL,a:MATERIALS.ACID};const PRESETS=[{name:"Smiley",art:["...........................","...........#####...........","........###########........","......####wwwwwww####......",".....###wwwwwwwwwww###.....","....##wwwwwwwwwwwwwww##....","...##wwwwwwwwwwwwwwwww##...","...##wwwwwwwwwwwwwwwww##...","..##wwww###wwwww###wwww##..","..##wwww###wwwww###wwww##..","..#wwwww###wwwww###wwwww#..",".##wwwwwwwwwwwwwwwwwwwww##.",".##wwwwwwwwwwwwwwwwwwwww##.",".##wwwwwwwwwwwwwwwwwwwww##.",".##wwwwwwwwwwwwwwwwwwwww##.","..#wwwww#wwwwwwwww#wwwww#..","..##www###wwwwwww###www##..","..##www####wwwww####www##..","...##www###########www##...","...##wwww#########wwww##...","....##wwww#######wwww##....",".....###wwwwwwwwwww###.....","......####wwwwwww####......","........###########........","...........#####...........","..........................."]},{name:"Shelves",art:["................................................................................","................................................................................","................................................................................","................................................................................","................................................................................","................................................................................","................................................................................","................................................................................","................................................................................","................s...............................................................","...............sss..............................................................",".............sssssss............................................................","...........sssssssssss..........................................................",".........sssssssssssssss........................................................",".......sssssssssssssssssss......................................................","..##############################................................................","................................................................................","................................................................................","................................................................................","................................................................................","................................................................................","................................................................................","................................................................................","................................................................................","................................................................................","................................................................................","................................................................................","................................................................................","................................................................................","............................................................s...................","..........................................................sssss.................","........................................................sssssssss...............","......................................................sssssssssssss.............","....................................................sssssssssssssssss...........","..........................................#####################################.","................................................................................","................................................................................","................................................................................","................................................................................","................................................................................","................................................................................","................................................................................","................................................................................","................................................................................","................................................................................","................................................................................","................................................................................",".............................sss................................................","...........................sssssss..............................................",".........................sssssssssss............................................","............######################################..............................","................................................................................","................................................................................","................................................................................"]},{name:"Funnel",art:["......................ssssssssssssssss......................","......................ssssssssssssssss......................","......................ssssssssssssssss......................","......................ssssssssssssssss......................","......................ssssssssssssssss......................","......................ssssssssssssssss......................","......................ssssssssssssssss......................","......................ssssssssssssssss......................","......................ssssssssssssssss......................","......................ssssssssssssssss......................","......................ssssssssssssssss......................","......................ssssssssssssssss......................","............................................................","............................................................","............................................................","............................................................","............................................................","............................................................","............................................................","............................................................","...............##...........................##..............","...............##...........................##..............","................##.........................##...............","................##.........................##...............",".................##.......................##................",".................##.......................##................","..................##.....................##.................","..................##.....................##.................","...................##...................##..................","...................##...................##..................","....................##.................##...................","....................##.................##...................",".....................##...............##....................",".....................##...............##....................","......................##.............##.....................","......................##.............##.....................",".......................##...........##......................",".......................##...........##......................","........................##.........##.......................","........................##.........##.......................",".........................##.......##........................",".........................##.......##........................","..........................##.....##.........................","..........................##.....##.........................","...........................##...##..........................","...........................##...##..........................","............................##.##...........................","............................##.##...........................",".............................###............................",".............................###............................","..............................#.............................","............................................................","............................................................","............................................................","............................................................","............................................................","............................................................","............................................................","............................................................","............................................................","............................................................","............................................................"]},{name:"Water basin",art:["......................................................................","......................................................................","......................................................................","......................................................................","......................................................................","......................................................................","......................................................................","......................................................................","......................................................................","......................................................................",".....#..........................................................#.....",".....#..........................................................#.....",".....#..........................................................#.....",".....#..........................................................#.....",".....#..........................................................#.....",".....#..........................................................#.....",".....#..........................................................#.....",".....#..........................................................#.....",".....#..........................................................#.....",".....#..........................................................#.....",".....#.wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww.#.....",".....#.wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww.#.....",".....#.wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww.#.....",".....#.wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww.#.....",".....#.wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww.#.....",".....#.wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww.#.....",".....#.wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww.#.....",".....#.wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww.#.....",".....#.wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww.#.....",".....#.wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww.#.....",".....#.wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww.#.....",".....#.wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww.#.....",".....#.wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww.#.....",".....#.wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww.#.....",".....#.wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww.#.....",".....#.wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww.#.....",".....#.wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww.#.....",".....#.wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww.#.....",".....#.wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww.#.....",".....#.wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww.#.....",".....#.wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww.#.....",".....#.wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww.#.....",".....#.wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww.#.....",".....#.wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww.#.....",".....############################################################....."]},{name:"Acid trap",art:["..................................................","........................sss.......................","......................sssssss.....................","....................sssssssssss...................","..................sssssssssssssss.................","................sssssssssssssssssss...............","..................................................","..................................................","..................................................","..................................................","..................................................","..................................................","..................................................","..................................................","..................................................","..................................................","..................................................","..................................................","..................................................","..................................................","..................................................","..................................................","..................................................","..................................................","..................................................","..........#............................#..........","..........#............................#..........","..........#............................#..........","..........#............................#..........","..........#............................#..........","..........#............................#..........","..........#............................#..........","..........#............................#..........","..........#............................#..........","..........#............................#..........","..........#............................#..........","..........#............................#..........","##################################################","..................................................","..................................................","..................................................","..........aaaaaaaaaaaaaaaaaaaaaaaaaaaaa..........","..........aaaaaaaaaaaaaaaaaaaaaaaaaaaaa..........","..........aaaaaaaaaaaaaaaaaaaaaaaaaaaaa..........","..........aaaaaaaaaaaaaaaaaaaaaaaaaaaaa..........","..........aaaaaaaaaaaaaaaaaaaaaaaaaaaaa..........","..........aaaaaaaaaaaaaaaaaaaaaaaaaaaaa...........","..................................................","..................................................","..................................................",".................................................."]}];const Presets={list:PRESETS,byName(name){return PRESETS.find(p=>p.name===name)},apply(grid,preset){const art=preset.art;let minX=Infinity,minY=Infinity,maxX=-1,maxY=-1;for(let y=0;y<art.length;y++){for(let x=0;x<art[y].length;x++){if(art[y][x]===".")continue;minX=Math.min(minX,x);minY=Math.min(minY,y);maxX=Math.max(maxX,x);maxY=Math.max(maxY,y)}}const artW=maxX-minX+1;const artH=maxY-minY+1;const maxW=Math.floor(grid.width*CONFIG.PRESETS.MAX_FRACTION);const maxH=Math.floor(grid.height*CONFIG.PRESETS.MAX_FRACTION);const scale=Math.max(1,Math.min(Math.floor(maxW/artW),Math.floor(maxH/artH)));const offsetX=Math.floor((grid.width-artW*scale)/2);const offsetY=Math.floor((grid.height-artH*scale)/2);for(let y=minY;y<=maxY;y++){for(let x=minX;x<=maxX;x++){const material=PRESET_GLYPHS[art[y][x]]??MATERIALS.EMPTY;if(material===MATERIALS.EMPTY)continue;for(let sy=0;sy<scale;sy++){for(let sx=0;sx<scale;sx++){grid.set(offsetX+(x-minX)*scale+sx,offsetY+(y-minY)*scale+sy,material)}}}}return scale},random(grid){grid.clear();const preset=PRESETS[Math.random()*PRESETS.length|0];this.apply(grid,preset);return preset}};
+</script>
+  <script>
+function hexToRgb(hex){const n=parseInt(hex.slice(1),16);return[n>>16&255,n>>8&255,n&255]}class Renderer{constructor(canvas,grid){this.canvas=canvas;this.grid=grid;canvas.width=grid.width;canvas.height=grid.height;this.ctx=canvas.getContext("2d");this.imageData=this.ctx.createImageData(grid.width,grid.height);this.palettes={};for(const key of Object.keys(MATERIAL_INFO)){const material=Number(key);const[r,g,b]=hexToRgb(MATERIAL_INFO[material].color);this.palettes[material]=CONFIG.SHADE_VARIATIONS.map(factor=>[Math.min(255,Math.round(r*factor)),Math.min(255,Math.round(g*factor)),Math.min(255,Math.round(b*factor))])}const count=grid.width*grid.height;const variations=CONFIG.SHADE_VARIATIONS.length;this.shadeMap=new Uint8Array(count);for(let i=0;i<count;i++){this.shadeMap[i]=Math.random()*variations|0}}draw(){const{cells:cells}=this.grid;const data=this.imageData.data;const length=cells.length;for(let i=0;i<length;i++){const[r,g,b]=this.palettes[cells[i]][this.shadeMap[i]];const o=i*4;data[o]=r;data[o+1]=g;data[o+2]=b;data[o+3]=255}this.ctx.putImageData(this.imageData,0,0)}}
+</script>
+  <script>
+class Input{constructor(canvas,grid){this.canvas=canvas;this.grid=grid;this.material=MATERIALS.SAND;this.brushRadius=CONFIG.DEFAULT_BRUSH_RADIUS;this.pointerDown=false;this.gridX=-1;this.gridY=-1;this.lastX=-1;this.lastY=-1;canvas.addEventListener("pointerdown",event=>{event.preventDefault();this.pointerDown=true;this.lastX=-1;this.lastY=-1;this.updatePosition(event)});canvas.addEventListener("pointermove",event=>{this.updatePosition(event)});window.addEventListener("pointerup",()=>{this.pointerDown=false;this.lastX=-1;this.lastY=-1});canvas.addEventListener("contextmenu",event=>{event.preventDefault()})}updatePosition(event){const rect=this.canvas.getBoundingClientRect();if(rect.width===0||rect.height===0)return;const relX=(event.clientX-rect.left)/rect.width;const relY=(event.clientY-rect.top)/rect.height;const x=Math.floor(relX*this.grid.width);const y=Math.floor(relY*this.grid.height);if(this.grid.inBounds(x,y)){this.gridX=x;this.gridY=y}}stamp(x,y){const radius=this.brushRadius;for(let dy=-radius;dy<=radius;dy++){for(let dx=-radius;dx<=radius;dx++){if(dx*dx+dy*dy>radius*radius)continue;const px=x+dx;const py=y+dy;if(this.grid.inBounds(px,py)){this.grid.set(px,py,this.material)}}}}stampLine(x0,y0,x1,y1){const steps=Math.max(Math.abs(x1-x0),Math.abs(y1-y0),1);for(let i=1;i<=steps;i++){this.stamp(Math.round(x0+(x1-x0)*i/steps),Math.round(y0+(y1-y0)*i/steps))}}paint(){if(!this.pointerDown||!this.grid.inBounds(this.gridX,this.gridY)){this.lastX=-1;this.lastY=-1;return}if(this.lastX<0||this.lastY<0){this.stamp(this.gridX,this.gridY)}else{this.stampLine(this.lastX,this.lastY,this.gridX,this.gridY)}this.lastX=this.gridX;this.lastY=this.gridY}}
+</script>
+  <script>
+(function(){"use strict";document.documentElement.style.setProperty("--canvas-size",`${CONFIG.CANVAS_SIZE}px`);const canvas=document.getElementById("sim-canvas");const grid=new Grid(CONFIG.GRID_WIDTH,CONFIG.GRID_HEIGHT);const renderer=new Renderer(canvas,grid);const input=new Input(canvas,grid);const materialButtons=Array.from(document.querySelectorAll("[data-material]"));function selectMaterial(material){input.material=material;for(const button of materialButtons){button.classList.toggle("is-active",Number(button.dataset.material)===material)}}for(const button of materialButtons){const material=Number(button.dataset.material);button.addEventListener("click",()=>selectMaterial(material))}window.addEventListener("keydown",event=>{const shortcutIndex=Number.parseInt(event.key,10)-1;if(Number.isInteger(shortcutIndex)&&shortcutIndex>=0&&shortcutIndex<PAINTABLE_MATERIALS.length){selectMaterial(PAINTABLE_MATERIALS[shortcutIndex])}if(event.key==="p"||event.key==="P"){togglePause()}if(event.key==="e"||event.key==="E"){toggleErosion()}if(event.key==="r"||event.key==="R"){toggleRain()}if(event.key==="d"||event.key==="D"){toggleDrain()}});const brushSlider=document.getElementById("brush-size");const brushValue=document.getElementById("brush-value");brushSlider.min=String(CONFIG.MIN_BRUSH_RADIUS);brushSlider.max=String(CONFIG.MAX_BRUSH_RADIUS);brushSlider.value=String(CONFIG.DEFAULT_BRUSH_RADIUS);function applyBrushRadius(){input.brushRadius=Number(brushSlider.value);brushValue.textContent=String(input.brushRadius)}brushSlider.addEventListener("input",applyBrushRadius);applyBrushRadius();document.getElementById("clear-btn").addEventListener("click",()=>Presets.random(grid));const pauseButton=document.getElementById("pause-btn");let paused=false;function togglePause(){paused=!paused;pauseButton.textContent=paused?"▶  Resume":"⏸  Pause";pauseButton.classList.toggle("is-active",paused)}pauseButton.addEventListener("click",togglePause);const erosionButton=document.getElementById("erosion-btn");function toggleErosion(){Physics.erosion=!Physics.erosion;erosionButton.classList.toggle("is-active",Physics.erosion)}erosionButton.addEventListener("click",toggleErosion);const rainButton=document.getElementById("rain-btn");function toggleRain(){Rain.enabled=!Rain.enabled;rainButton.classList.toggle("is-active",Rain.enabled)}rainButton.addEventListener("click",toggleRain);const drainButton=document.getElementById("drain-btn");function toggleDrain(){Drain.enabled=!Drain.enabled;drainButton.classList.toggle("is-active",Drain.enabled)}drainButton.addEventListener("click",toggleDrain);const rainRateSlider=document.getElementById("rain-rate");const rainRateValue=document.getElementById("rain-rate-value");rainRateSlider.min=String(CONFIG.RAIN.MIN_RATE);rainRateSlider.max=String(CONFIG.RAIN.MAX_DROPS_PER_TICK);rainRateSlider.value=String(CONFIG.RAIN.DEFAULT_RATE);function applyRainRate(){Rain.setRate(Number(rainRateSlider.value));rainRateValue.textContent=String(rainRateSlider.value)}rainRateSlider.addEventListener("input",applyRainRate);applyRainRate();const aciditySlider=document.getElementById("rain-acidity");const acidityValue=document.getElementById("rain-acidity-value");aciditySlider.min=String(CONFIG.RAIN.MIN_ACID_PERCENT);aciditySlider.max=String(CONFIG.RAIN.MAX_ACID_PERCENT);aciditySlider.value=String(CONFIG.RAIN.DEFAULT_ACID_PERCENT);function applyRainAcidity(){Rain.acidChance=Number(aciditySlider.value)/100;acidityValue.textContent=`${aciditySlider.value}%`}aciditySlider.addEventListener("input",applyRainAcidity);applyRainAcidity();const drainRateSlider=document.getElementById("drain-rate");const drainRateValue=document.getElementById("drain-rate-value");drainRateSlider.min=String(CONFIG.DRAIN.MIN_RATE);drainRateSlider.max=String(CONFIG.DRAIN.MAX_RATE);drainRateSlider.value=String(CONFIG.DRAIN.DEFAULT_RATE);function applyDrainRate(){Drain.rate=Number(drainRateSlider.value);drainRateValue.textContent=String(drainRateSlider.value)}drainRateSlider.addEventListener("input",applyDrainRate);applyDrainRate();rainButton.classList.toggle("is-active",Rain.enabled);drainButton.classList.toggle("is-active",Drain.enabled);selectMaterial(MATERIALS.SAND);grid.clear();Presets.apply(grid,Presets.byName("Smiley"));document.getElementById("size-canvas").textContent=`${CONFIG.CANVAS_SIZE} × ${CONFIG.CANVAS_SIZE}`;document.getElementById("size-grid").textContent=`${CONFIG.GRID_WIDTH} × ${CONFIG.GRID_HEIGHT}`;const fpsValue=document.getElementById("fps-value");const FPS_UPDATE_INTERVAL_MS=250;const FPS_SMOOTHING=.1;let lastFrameTime=performance.now();let fpsSmoothed=0;let lastFpsUpdate=0;function updateFps(now){const dt=now-lastFrameTime;lastFrameTime=now;if(dt>0){const instantFps=1e3/dt;fpsSmoothed=fpsSmoothed===0?instantFps:fpsSmoothed*(1-FPS_SMOOTHING)+instantFps*FPS_SMOOTHING}if(now-lastFpsUpdate>=FPS_UPDATE_INTERVAL_MS){lastFpsUpdate=now;fpsValue.textContent=fpsSmoothed.toFixed(1)}}function frame(now){updateFps(now);input.paint();if(!paused){for(let t=0;t<CONFIG.TICKS_PER_FRAME;t++){Rain.update(grid);Drain.update(grid);Physics.tick(grid)}}renderer.draw();requestAnimationFrame(frame)}requestAnimationFrame(frame)})();
+</script>
+</body>
+</html>

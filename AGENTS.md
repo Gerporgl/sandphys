@@ -6,7 +6,7 @@ build step required to run, no dependencies, no ES modules — plain
 `<script>` tags so `index.html` works from `file://`. Run tests with
 `node tests/run-tests.js`. An optional single-file build for sharing exists:
 `./build.sh [--minify]` (see `build.mjs`) inlines CSS + JS into
-`dist/sandfall.html`; `dist/` is gitignored.
+`dist/sandfall.html` (tracked in git for easy sharing).
 
 ## Status (as of last session)
 Complete and stable: 19/19 tests passing. Features: 5 paintables (Sand,
