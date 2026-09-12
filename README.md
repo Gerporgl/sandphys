@@ -29,6 +29,22 @@ python3 -m http.server 8000
 No `npm install`, no dev server needed — the scripts are plain `<script>` tags
 (no ES modules), so the app also works from `file://`.
 
+## Try it without cloning
+
+GitHub can't run HTML files in the browser (it serves them as raw text, and
+rendered READMEs can't embed live pages), so the fastest way to play is:
+
+1. Open [`dist/sandfall.html`](dist/sandfall.html) in the repo (it's committed
+   and minified — no build step needed).
+2. Click the **Raw** button, then `Ctrl/Cmd+S` to save the file locally
+   (or right-click → *Save link as…*).
+3. Double-click the saved file — it's fully self-contained and runs from
+   `file://`.
+
+(If you host this repo with GitHub Pages enabled, `dist/sandfall.html` would
+be directly playable in the browser — Pages serves real HTML, unlike the repo
+file view.)
+
 ## Building a single shareable file
 
 To send the app to someone as one self-contained file, build
@@ -43,7 +59,9 @@ same order as in `index.html`):
 Requires only Node — no `npm install`. With `--minify`, terser is fetched on
 demand via `npx` on first use if it is not already installed (cached after
 that). CSS is inlined unmodified. The output works from `file://` exactly like
-the source. `dist/` is gitignored — commit nothing from it.
+the source. The minified build is committed at `dist/sandfall.html` (see
+*Try it without cloning* above), so rebuild after source changes if you want
+the repo copy current.
 
 ## Using the app
 
@@ -59,8 +77,11 @@ the source. `dist/` is gitignored — commit nothing from it.
   - **Erosion** (key `E`): sand falling into water *converts* the water into
     sand (sedimentation, no displacement), and water sitting on sand or wall
     has a random chance per tick to dissolve that cell into water.
-  - **Rain** (key `R`): water drops fall from the top of the grid at a
-    random intensity that gently thickens and thins over time.
+  - **Rain** (key `R`, on by default): water drops fall from the top of the
+    grid at a random intensity that gently thickens and thins over time; a
+    rate slider caps it and an acidity slider makes some drops acid.
+  - **Drain** (key `D`, on by default): removes water/acid from the bottom
+    row at the slider-set speed, so a raining grid doesn't fill up.
 
 ## Simulation rules
 
