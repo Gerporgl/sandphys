@@ -107,3 +107,7 @@ The user actively tunes `js/config.js` themselves (currently 250×250 grid,
 - Water does not sink through acid and acid does not erode in erosion mode —
   intentional, unspecified by the user, works fine in practice.
 - Canvas 400/500 px is CSS size only; the sim runs at grid resolution.
+- Layout is a 3-area grid ("left stage right"): left panel = header +
+  materials + brush, right panel = modes + sliders + actions. ≤1160px it
+  collapses to two columns (right panel under left), ≤760px to one column,
+  canvas first (see the two media queries in css/style.css).

@@ -45,18 +45,31 @@ body {
 .app {
   min-height: 100vh;
   display: grid;
-  grid-template-columns: 280px 1fr;
+  grid-template-columns: 260px minmax(0, 1fr) 260px;
+  grid-template-areas: "left stage right";
   gap: 24px;
   padding: 24px;
-  max-width: 900px;
+  max-width: 1180px;
   margin: 0 auto;
+}
+
+.panel-left {
+  grid-area: left;
+}
+
+.panel-right {
+  grid-area: right;
+}
+
+.stage {
+  grid-area: stage;
 }
 
 .stage {
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: start; /* top-align with the panel */
+  justify-content: start; /* top-align with the panels */
   gap: 12px;
 }
 
@@ -322,17 +335,51 @@ input[type="range"]::-moz-range-thumb {
   color: var(--text-dim);
 }
 
-/* ---------- Small screens ---------- */
+/* ---------- Narrow screens (two columns) ---------- */
+
+@media (max-width: 1160px) and (min-width: 761px) {
+  .app {
+    grid-template-columns: 260px minmax(0, 1fr);
+    grid-template-areas:
+      "left stage"
+      "right stage";
+  }
+}
+
+/* ---------- Small screens (stacked: canvas, then the panels) ---------- */
 
 @media (max-width: 760px) {
   .app {
     grid-template-columns: 1fr;
+    grid-template-areas:
+      "stage"
+      "left"
+      "right";
     justify-items: center;
   }
 
   .panel {
     width: 100%;
     max-width: var(--canvas-size);
+  }
+
+  /* Keep the material picker compact so the left panel stays short. */
+  .material-list {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+
+  .material-btn {
+    font-size: 0.8rem;
+    padding: 8px 8px;
+  }
+
+  .material-btn .material-name {
+    max-width: 60px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
 
   #sim-canvas {

@@ -8,7 +8,7 @@
 </head>
 <body>
   <div class="app">
-    <aside class="panel">
+    <aside class="panel panel-left">
       <header class="panel-header">
         <h1>Sandfall</h1>
         <p class="subtitle">Falling sand sandbox</p>
@@ -57,7 +57,23 @@
           aria-label="Brush size"
         />
       </section>
+    </aside>
 
+    <main class="stage">
+      <div class="canvas-frame">
+        <canvas id="sim-canvas" width="200" height="200"></canvas>
+      </div>
+
+      <div class="status-bar" role="status">
+        <span class="status-item">Canvas&nbsp;<span id="size-canvas">—</span></span>
+        <span class="status-sep">·</span>
+        <span class="status-item">Grid&nbsp;<span id="size-grid">—</span></span>
+        <span class="status-sep">·</span>
+        <span class="status-item">FPS&nbsp;<span id="fps-value">—</span></span>
+      </div>
+    </main>
+
+    <aside class="panel panel-right">
       <section class="panel-section">
         <h2>Modes</h2>
         <div class="action-row">
@@ -129,20 +145,6 @@
         Hold the button down to keep the stream flowing.</p>
       </footer>
     </aside>
-
-    <main class="stage">
-      <div class="canvas-frame">
-        <canvas id="sim-canvas" width="200" height="200"></canvas>
-      </div>
-
-      <div class="status-bar" role="status">
-        <span class="status-item">Canvas&nbsp;<span id="size-canvas">—</span></span>
-        <span class="status-sep">·</span>
-        <span class="status-item">Grid&nbsp;<span id="size-grid">—</span></span>
-        <span class="status-sep">·</span>
-        <span class="status-item">FPS&nbsp;<span id="fps-value">—</span></span>
-      </div>
-    </main>
   </div>
 
   <!-- Plain scripts (no modules) so the app also works from file:// -->
