@@ -161,3 +161,8 @@ variation, brush defaults, erosion chance, rain intensity bounds) live in
 `js/config.js`. Change them there; no other file needs editing. The canvas
 display size follows `CANVAS_SIZE` automatically — the app injects it into
 the CSS `--canvas-size` variable at startup.
+
+## Credits
+
+Thanks to [lukesdevlab](https://github.com/lukesdevlab) (YouTube) — the
+original prompt for this project.
