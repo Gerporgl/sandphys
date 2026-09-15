@@ -78,6 +78,13 @@ body {
 .status-bar {
   display: flex;
   align-items: center;
+  justify-content: center;
+  /* Fixed width (exactly the canvas frame's width: canvas + 14px padding
+   * x2 + 1px border x2) so the bar never reflows as the FPS text grows
+   * or shrinks — a content-sized bar can tip the page past the
+   * scrollbar threshold and make the layout oscillate. */
+  width: min(100%, calc(var(--canvas-size) + 30px));
+  white-space: nowrap;
   gap: 10px;
   font-size: 0.75rem;
   color: var(--text-dim);
