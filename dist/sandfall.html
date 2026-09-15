@@ -386,6 +386,13 @@ input[type="range"]::-moz-range-thumb {
     max-width: var(--canvas-size);
   }
 
+  /* With justify-items: center the stage does not stretch to the grid
+   * column; without an explicit width its size floats with its content
+   * (the status bar text), which makes the canvas breathe. Pin it. */
+  .stage {
+    width: 100%;
+  }
+
   /* Keep the material picker compact so the left panel stays short. */
   .material-list {
     display: grid;
