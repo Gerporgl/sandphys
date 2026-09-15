@@ -4,7 +4,10 @@
 A falling-sand cellular-automata sandbox in pure vanilla HTML/CSS/JS. No
 build step required to run, no dependencies, no ES modules — plain
 `<script>` tags so `index.html` works from `file://`. Run tests with
-`node tests/run-tests.js`. An optional single-file build for sharing exists:
+`node tests/run-tests.js`. Browser-based layout checks live in
+`tools/` (e.g. `verify-mobile-layout.mjs`, needs playwright + Firefox) —
+never add browser-dependent checks to `tests/`, which auto-discovers
+`test-*.js` and runs them in plain Node with no DOM. An optional single-file build for sharing exists:
 `./build.sh [--minify]` (see `build.mjs`) inlines CSS + JS into
 `dist/sandfall.html` (tracked in git for easy sharing).
 
