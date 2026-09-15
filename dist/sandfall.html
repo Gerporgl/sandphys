@@ -91,12 +91,21 @@ body {
    * or shrinks — a content-sized bar can tip the page past the
    * scrollbar threshold and make the layout oscillate. */
   width: min(100%, calc(var(--canvas-size) + 30px));
+  /* Items may wrap to a second line but must never overflow the box:
+   * overflowing flex items (min-width: auto) widen the page's
+   * scrollWidth, and mobile Firefox then widens the layout viewport,
+   * stretching the whole layout including the canvas frame. */
+  flex-wrap: wrap;
   white-space: nowrap;
   gap: 10px;
   font-size: 0.75rem;
   color: var(--text-dim);
   font-variant-numeric: tabular-nums;
   letter-spacing: 0.02em;
+}
+
+.status-item {
+  min-width: 0; /* never force the bar's content past its fixed width */
 }
 
 .status-item span {
