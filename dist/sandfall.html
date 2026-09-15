@@ -389,9 +389,17 @@ input[type="range"]::-moz-range-thumb {
     white-space: nowrap;
   }
 
+  /* Let the frame fill the column exactly so nothing overflows the
+   * viewport (an overflowing frame makes mobile browsers widen the
+   * layout viewport, which shifts the whole page off-center). */
+  .canvas-frame {
+    width: 100%;
+  }
+
   #sim-canvas {
-    width: min(var(--canvas-size), 88vw);
-    height: min(var(--canvas-size), 88vw);
+    width: 100%;
+    height: auto;
+    aspect-ratio: 1 / 1;
   }
 }
 
